@@ -3,10 +3,13 @@ import { Text, View } from '@/components/Themed';
 import { useAuthStore } from '@/src/store/auth';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/src/api/client';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useRouter } from 'expo-router';
 
 export default function TabOneScreen() {
-  const { logout, user } = useAuthStore();
+  const { user } = useAuthStore();
   const [events, setEvents] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     fetchEvents();
@@ -24,9 +27,12 @@ export default function TabOneScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Namaste, {user?.first_name || 'Member'}!</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-          <Text style={styles.logoutText}>Logout</Text>
+        <View>
+          <Text style={styles.greeting}>Namaste,</Text>
+          <Text style={styles.title}>{user?.first_name || 'Member'}!</Text>
+        </View>
+        <TouchableOpacity style={styles.profileAvatar} onPress={() => router.push('/(tabs)/profile')}>
+          <Text style={styles.avatarText}>{user?.first_name?.[0] || 'U'}</Text>
         </TouchableOpacity>
       </View>
       
@@ -61,19 +67,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: 'transparent',
   },
+  greeting: {
+    fontSize: 16,
+    color: '#64748b',
+    marginBottom: 2,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#0f172a',
   },
-  logoutBtn: {
-    padding: 8,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#3b82f6',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  logoutText: {
+  avatarText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 18,
   },
   separator: {
     marginVertical: 10,
@@ -109,3 +124,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
