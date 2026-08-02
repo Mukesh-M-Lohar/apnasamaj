@@ -98,6 +98,48 @@ class TenantBriefResponse(BaseSchema):
 
 # ── Session / Device ─────────────────────────────────────────────────────
 
+class AuthMeResponse(BaseSchema):
+    """User profile response."""
+
+    id: UUID
+    full_name: str | None = None
+    mobile: str
+    email: str | None = None
+    avatar_url: str | None = None
+    is_active: bool
+    is_verified: bool
+    is_super_admin: bool
+    last_login_at: datetime | None = None
+    created_at: datetime
+
+
+# ── Roles ────────────────────────────────────────────────────────────────
+
+class AssignRoleSchema(BaseSchema):
+    """Payload for assigning a role to a user in a tenant."""
+    user_id: UUID
+    role_id: UUID
+
+
+class RoleResponse(BaseSchema):
+    """Role definition response."""
+    id: UUID
+    name: str
+    display_name: str
+    description: str | None = None
+    is_system: bool
+
+
+class UserTenantRoleResponse(BaseSchema):
+    """Maps a user to a tenant and role."""
+    id: UUID
+    user_id: UUID
+    tenant_id: UUID
+    role_id: UUID
+    is_active: bool
+    created_at: datetime
+
+
 class SessionResponse(BaseSchema):
     """Active session / device info."""
 

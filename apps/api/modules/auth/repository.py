@@ -216,6 +216,11 @@ class AuthRepository:
         result = await self._session.execute(stmt)
         return result.rowcount
 
+    async def delete_session(self, session_id: UUID) -> bool:
+        stmt = delete(UserSession).where(UserSession.id == session_id)
+        result = await self._session.execute(stmt)
+        return result.rowcount > 0
+
     async def update_session_last_used(self, session_id: UUID, ip_address: str | None = None) -> None:
         values: dict = {"last_used_at": datetime.now(UTC)}
         if ip_address:
@@ -250,3 +255,50 @@ class AuthRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_tenant_roles(self, tenant_id: UUID) -> list[Role]:
+        from sqlalchemy import or_
+        stmt = select(Role).where(
+            or_(Role.tenant_id == tenant_id, Role.is_system == True)  # noqa: E712
+        ).order_by(Role.name.asc())
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_role_by_id(self, role_id: UUID) -> Role | None:
+        stmt = select(Role).where(Role.id == role_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def assign_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> UserTenantRole:
+        stmt = select(UserTenantRole).where(
+            UserTenantRole.user_id == user_id,
+            UserTenantRole.tenant_id == tenant_id,
+            UserTenantRole.role_id == role_id
+        )
+        result = await self._session.execute(stmt)
+        utr = result.scalar_one_or_none()
+        
+        if utr:
+            utr.is_active = True
+        else:
+            utr = UserTenantRole(
+                user_id=user_id,
+                tenant_id=tenant_id,
+                role_id=role_id,
+                is_active=True
+            )
+            self._session.add(utr)
+            
+        await self._session.flush()
+        await self._session.refresh(utr)
+        return utr
+
+    async def revoke_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> bool:
+        from sqlalchemy import delete
+        stmt = delete(UserTenantRole).where(
+            UserTenantRole.user_id == user_id,
+            UserTenantRole.tenant_id == tenant_id,
+            UserTenantRole.role_id == role_id
+        )
+        result = await self._session.execute(stmt)
+        return result.rowcount > 0

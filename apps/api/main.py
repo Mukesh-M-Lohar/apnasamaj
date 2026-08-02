@@ -20,6 +20,12 @@ from apps.api.core.exceptions import register_exception_handlers
 from apps.api.core.middleware import register_middleware
 from apps.api.modules.auth.routes import router as auth_router
 from apps.api.modules.tenant.routes import router as community_router
+from apps.api.modules.member.routes import router as member_router
+from apps.api.modules.family.routes import router as family_router
+from apps.api.modules.committee.routes import router as committee_router
+from apps.api.modules.donation.routes import router as donation_router
+from apps.api.modules.event.routes import router as event_router
+from apps.api.modules.volunteer.routes import router as volunteer_router
 
 settings = get_settings()
 
@@ -64,10 +70,14 @@ def create_app() -> FastAPI:
     # ── API v1 Routes ───────────────────────────────────────────────────
     app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
     app.include_router(community_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(member_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(family_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(committee_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(donation_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(event_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(volunteer_router, prefix=settings.API_V1_PREFIX)
 
     # Future module routers will be added here:
-    # app.include_router(member_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(family_router, prefix=settings.API_V1_PREFIX)
     # app.include_router(committee_router, prefix=settings.API_V1_PREFIX)
     # app.include_router(donation_router, prefix=settings.API_V1_PREFIX)
     # app.include_router(event_router, prefix=settings.API_V1_PREFIX)

@@ -172,8 +172,8 @@ async def list_sessions(
 @router.delete(
     "/sessions/{session_id}",
     response_model=ApiResponse[dict],
-    summary="Revoke a Session",
-    description="Revoke a specific login session / device.",
+    summary="Revoke Session",
+    description="Revoke a specific session/device.",
 )
 async def revoke_session(
     session_id: UUID,
@@ -181,10 +181,61 @@ async def revoke_session(
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[dict]:
     service = AuthService(db)
-    revoked = await service.revoke_session(user_id, session_id)
-    if not revoked:
-        raise AppException("Session not found or already revoked", status_code=404)
-    return ApiResponse(data={"message": "Session revoked successfully"})
+    success = await service.revoke_session(user_id, session_id)
+    if not success:
+        return ApiResponse(data={"message": "Session not found or already revoked"})
+    return ApiResponse(data={"message": "Session revoked"})
+
+# ── Roles ────────────────────────────────────────────────────────────────
+
+from apps.api.core.dependencies import get_current_tenant_id
+from apps.api.modules.auth.schemas import RoleResponse, AssignRoleSchema, UserTenantRoleResponse
+
+@router.get(
+    "/roles",
+    response_model=ApiResponse[list[RoleResponse]],
+    summary="List Tenant Roles",
+    description="List all roles available for assignment in the current community.",
+)
+async def list_roles(
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db),
+) -> ApiResponse[list[RoleResponse]]:
+    service = AuthService(db)
+    result = await service.get_tenant_roles(tenant_id)
+    return ApiResponse(data=result)
+
+@router.post(
+    "/roles/assign",
+    response_model=ApiResponse[UserTenantRoleResponse],
+    summary="Assign Role",
+    description="Assign a role to a user within the current community.",
+)
+async def assign_role(
+    body: AssignRoleSchema,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db),
+) -> ApiResponse[UserTenantRoleResponse]:
+    service = AuthService(db)
+    result = await service.assign_role(body.user_id, tenant_id, body.role_id)
+    return ApiResponse(data=result)
+
+@router.post(
+    "/roles/revoke",
+    response_model=ApiResponse[dict],
+    summary="Revoke Role",
+    description="Revoke a role from a user within the current community.",
+)
+async def revoke_role(
+    body: AssignRoleSchema,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db),
+) -> ApiResponse[dict]:
+    service = AuthService(db)
+    success = await service.revoke_role(body.user_id, tenant_id, body.role_id)
+    if not success:
+        return ApiResponse(data={"message": "Role mapping not found"})
+    return ApiResponse(data={"message": "Role revoked successfully"})
 
 
 # ── Social Login (scaffold) ─────────────────────────────────────────────
