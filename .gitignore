@@ -1,0 +1,54 @@
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# ── IDE ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Environment ─────────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+
+# ── Node ────────────────────────────────────────────────────
+node_modules/
+.next/
+.nuxt/
+dist/
+
+# ── Testing ─────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# ── Docker ──────────────────────────────────────────────────
+# Don't ignore docker-compose.yml or Dockerfile
+
+# ── OS ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Database ────────────────────────────────────────────────
+*.db
+*.sqlite3
