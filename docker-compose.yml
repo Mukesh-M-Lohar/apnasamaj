@@ -91,6 +91,44 @@ services:
       start_period: 10s
       retries: 3
 
+  # ── Next.js Web Admin ───────────────────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: apnasamaj-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_started
+
+  # ── Expo Mobile App ─────────────────────────────────────────
+  mobile:
+    build:
+      context: ./apps/mobile
+      dockerfile: Dockerfile
+    container_name: apnasamaj-mobile
+    restart: unless-stopped
+    environment:
+      # Use an environment variable to override Metro host if needed
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME:-127.0.0.1}
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./apps/mobile:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_started
+
 volumes:
   postgres_data:
   redis_data:

@@ -11,7 +11,8 @@ help:
 	@echo "ApnaSamaj Makefile"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make local         - Copy .env.example to .env and start local Docker compose stack"
+	@echo "  make local         - Copy .env.example to .env and start local Docker compose stack (Backend only)"
+	@echo "  make run-docker    - Start the ENTIRE ecosystem (DB, Redis, API, Web, Mobile) via docker-compose"
 	@echo "  make dev           - Run the FastAPI backend locally with uvicorn hot-reload"
 	@echo "  make mobile        - Start the Expo React Native mobile app"
 	@echo "  make web           - Start the Next.js admin dashboard locally"
@@ -29,8 +30,12 @@ help:
 	fi
 
 local: .env
-	@echo "Starting local environment (Postgres, Redis, Backend)..."
-	docker-compose up -d
+	@echo "Starting backend local environment (Postgres, Redis, API)..."
+	docker-compose up -d db redis minio api
+
+run-docker: .env
+	@echo "Starting the ENTIRE ecosystem in Docker..."
+	docker-compose up --build
 
 dev: .env
 	@echo "Starting FastAPI development server..."
