@@ -28,6 +28,9 @@ from apps.api.modules.event.routes import router as event_router
 from apps.api.modules.volunteer.routes import router as volunteer_router
 from apps.api.modules.complaint.routes import router as complaint_router
 from apps.api.modules.facility.routes import router as facility_router
+from apps.api.modules.notification.routes import router as notification_router
+from apps.api.modules.poll.routes import router as poll_router
+from apps.api.modules.payment.routes import router as payment_router
 
 settings = get_settings()
 
@@ -80,6 +83,9 @@ def create_app() -> FastAPI:
     app.include_router(volunteer_router, prefix=settings.API_V1_PREFIX)
     app.include_router(complaint_router, prefix=settings.API_V1_PREFIX)
     app.include_router(facility_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(notification_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(poll_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(payment_router, prefix=settings.API_V1_PREFIX)
 
     return app
 
