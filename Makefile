@@ -13,6 +13,8 @@ help:
 	@echo "Usage:"
 	@echo "  make local         - Copy .env.example to .env and start local Docker compose stack"
 	@echo "  make dev           - Run the FastAPI backend locally with uvicorn hot-reload"
+	@echo "  make mobile        - Start the Expo React Native mobile app"
+	@echo "  make web           - Start the Next.js admin dashboard locally"
 	@echo "  make seed          - Generate dummy data in the local database"
 	@echo "  make deploy-aws    - Build and deploy Docker image to AWS ECR/ECS"
 	@echo "  make deploy-azure  - Build and deploy Docker image to Azure ACR/Container Apps"
@@ -33,6 +35,14 @@ local: .env
 dev: .env
 	@echo "Starting FastAPI development server..."
 	uvicorn apps.api.main:app --reload --host 0.0.0.0 --port 8000
+
+mobile:
+	@echo "Starting Expo Mobile App..."
+	cd apps/mobile && npm install && npx expo start
+
+web:
+	@echo "Starting Next.js Web Admin Dashboard..."
+	cd apps/web && npm install && npm run dev
 
 seed:
 	@echo "Seeding local database with dummy data..."
