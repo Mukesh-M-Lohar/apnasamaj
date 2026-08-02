@@ -1,58 +1,61 @@
 """
-ApnaSamaj – Complaint Model
+ApnaSamaj – Complaint Models
 
-Community grievance/complaint tracking with priority, assignment,
-status workflow, and attachments.
+Defines the ticketing system for member issues, suggestions, or disputes.
 """
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
+import enum
+from typing import TYPE_CHECKING
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlmodel import Field, Relationship, String, Text
+from sqlalchemy import Column
 
-from apps.api.core.base_model import BaseModel
+from apps.api.core.models.base import BaseModel
+
+if TYPE_CHECKING:
+    from apps.api.modules.member.models import Member
+    from apps.api.modules.committee.models import Committee
 
 
-class Complaint(BaseModel):
-    """A complaint or grievance raised by a community member."""
+class ComplaintStatus(str, enum.Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    REJECTED = "rejected"
 
+
+class ComplaintPriority(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class Complaint(BaseModel, table=True):
+    """
+    A ticket raised by a member.
+    It can be assigned to a specific committee for resolution.
+    """
     __tablename__ = "complaints"
 
-    complaint_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    title: str = Field(sa_column=Column(String(255), nullable=False))
+    description: str = Field(sa_column=Column(Text, nullable=False))
+    
+    status: ComplaintStatus = Field(default=ComplaintStatus.OPEN)
+    priority: ComplaintPriority = Field(default=ComplaintPriority.MEDIUM)
 
-    # ── Who raised it ────────────────────────────────────────────────────
-    raised_by_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("members.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    # Who raised it
+    reporter_id: UUID = Field(foreign_key="members.id", nullable=False)
+    
+    # Which committee is handling it (optional)
+    assigned_committee_id: UUID | None = Field(default=None, foreign_key="committees.id")
 
-    # ── Details ──────────────────────────────────────────────────────────
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str] = mapped_column(String(100), nullable=False)  # maintenance, financial, social, other
-    priority: Mapped[str] = mapped_column(String(20), default="medium", nullable=False)  # low, medium, high, critical
+    # Resolution notes
+    resolution_notes: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
 
-    # ── Assignment ───────────────────────────────────────────────────────
-    assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("members.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-
-    # ── Status ───────────────────────────────────────────────────────────
-    status: Mapped[str] = mapped_column(
-        String(20), default="open", nullable=False,
-    )  # open, in_progress, resolved, closed, rejected
-
-    # ── Resolution ───────────────────────────────────────────────────────
-    resolution: Mapped[str | None] = mapped_column(Text, nullable=True)
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-    # ── Attachments ──────────────────────────────────────────────────────
-    attachments: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # list of file URLs
+    # Relationships
+    reporter: "Member" = Relationship()
+    assigned_committee: "Committee" = Relationship()

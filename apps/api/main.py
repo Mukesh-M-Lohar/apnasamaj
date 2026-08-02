@@ -26,6 +26,8 @@ from apps.api.modules.committee.routes import router as committee_router
 from apps.api.modules.donation.routes import router as donation_router
 from apps.api.modules.event.routes import router as event_router
 from apps.api.modules.volunteer.routes import router as volunteer_router
+from apps.api.modules.complaint.routes import router as complaint_router
+from apps.api.modules.facility.routes import router as facility_router
 
 settings = get_settings()
 
@@ -76,13 +78,8 @@ def create_app() -> FastAPI:
     app.include_router(donation_router, prefix=settings.API_V1_PREFIX)
     app.include_router(event_router, prefix=settings.API_V1_PREFIX)
     app.include_router(volunteer_router, prefix=settings.API_V1_PREFIX)
-
-    # Future module routers will be added here:
-    # app.include_router(committee_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(donation_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(event_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(volunteer_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(complaint_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(complaint_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(facility_router, prefix=settings.API_V1_PREFIX)
 
     return app
 
