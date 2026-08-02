@@ -8,18 +8,14 @@ Centralized dependency injection functions for:
   • Redis client
 """
 
-from __future__ import annotations
-
 from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.config import get_settings
-from apps.api.core.database import get_db
 from apps.api.core.exceptions import TenantException, UnauthorizedException
 from apps.api.core.security import decode_token
 

@@ -10,14 +10,13 @@ import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlmodel import Field, Relationship, String, Text
-from sqlalchemy import Column
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from apps.api.core.models.base import BaseModel
+from apps.api.core.base_model import BaseModel
 
 if TYPE_CHECKING:
-    from apps.api.modules.member.models import Member
+    pass
 
 
 class NotificationChannel(str, enum.Enum):
@@ -32,22 +31,31 @@ class NotificationStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class Notification(BaseModel, table=True):
+class Notification(BaseModel):
     """A broadcast message sent to members."""
+
     __tablename__ = "notifications"
 
-    title: str = Field(sa_column=Column(String(255), nullable=False))
-    message: str = Field(sa_column=Column(Text, nullable=False))
-    
-    channel: NotificationChannel = Field(default=NotificationChannel.PUSH)
-    status: NotificationStatus = Field(default=NotificationStatus.PENDING)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+
+    channel: Mapped[NotificationChannel] = mapped_column(
+        default=NotificationChannel.PUSH
+    )
+    status: Mapped[NotificationStatus] = mapped_column(
+        default=NotificationStatus.PENDING
+    )
 
     # Optional targeting: if null, it's a tenant-wide broadcast.
     # Otherwise, it might target a specific committee or list of members.
-    target_committee_id: UUID | None = Field(default=None, foreign_key="committees.id")
-    
+    target_committee_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("committees.id"), nullable=True
+    )
+
     # Store provider response (e.g. FCM message ID or SendGrid ID)
-    provider_reference: str | None = Field(default=None, sa_column=Column(String(255)))
-    
+    provider_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     # Who triggered the broadcast
-    sender_id: UUID | None = Field(default=None, foreign_key="members.id")
+    sender_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("members.id"), nullable=True
+    )

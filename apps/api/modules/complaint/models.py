@@ -10,10 +10,10 @@ import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlmodel import Field, Relationship, String, Text
-from sqlalchemy import Column
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from apps.api.core.models.base import BaseModel
+from apps.api.core.base_model import BaseModel
 
 if TYPE_CHECKING:
     from apps.api.modules.member.models import Member
@@ -34,28 +34,33 @@ class ComplaintPriority(str, enum.Enum):
     CRITICAL = "critical"
 
 
-class Complaint(BaseModel, table=True):
+class Complaint(BaseModel):
     """
     A ticket raised by a member.
     It can be assigned to a specific committee for resolution.
     """
+
     __tablename__ = "complaints"
 
-    title: str = Field(sa_column=Column(String(255), nullable=False))
-    description: str = Field(sa_column=Column(Text, nullable=False))
-    
-    status: ComplaintStatus = Field(default=ComplaintStatus.OPEN)
-    priority: ComplaintPriority = Field(default=ComplaintPriority.MEDIUM)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+
+    status: Mapped[ComplaintStatus] = mapped_column(default=ComplaintStatus.OPEN)
+    priority: Mapped[ComplaintPriority] = mapped_column(
+        default=ComplaintPriority.MEDIUM
+    )
 
     # Who raised it
-    reporter_id: UUID = Field(foreign_key="members.id", nullable=False)
-    
+    reporter_id: Mapped[UUID] = mapped_column(ForeignKey("members.id"), nullable=False)
+
     # Which committee is handling it (optional)
-    assigned_committee_id: UUID | None = Field(default=None, foreign_key="committees.id")
+    assigned_committee_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("committees.id"), nullable=True
+    )
 
     # Resolution notes
-    resolution_notes: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
-    reporter: "Member" = Relationship()
-    assigned_committee: "Committee" = Relationship()
+    reporter: Mapped["Member"] = relationship()
+    assigned_committee: Mapped["Committee"] = relationship()

@@ -7,10 +7,14 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
-from apps.api.core.base_schema import BaseResponse
-from apps.api.modules.payment.models import EntityType, PaymentProvider, TransactionStatus
+from apps.api.core.base_schema import BaseResponseSchema
+from apps.api.modules.payment.models import (
+    EntityType,
+    PaymentProvider,
+    TransactionStatus,
+)
 
 
 class TransactionIntentSchema(BaseModel):
@@ -23,12 +27,13 @@ class TransactionIntentSchema(BaseModel):
 
 class WebhookPayloadSchema(BaseModel):
     """Generic representation of what a webhook sends us."""
+
     provider_reference: str
     status: TransactionStatus
     metadata: dict[str, Any] | None = None
 
 
-class TransactionResponse(BaseResponse):
+class TransactionResponse(BaseResponseSchema):
     amount: Decimal
     currency: str
     status: TransactionStatus
@@ -37,5 +42,5 @@ class TransactionResponse(BaseResponse):
     related_entity_type: EntityType
     related_entity_id: UUID
     payer_id: UUID
-    
+
     model_config = ConfigDict(from_attributes=True)

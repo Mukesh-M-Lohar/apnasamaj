@@ -13,8 +13,6 @@ All authentication endpoints:
   • POST /auth/apple           – Apple login (scaffold)
 """
 
-from __future__ import annotations
-
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
@@ -186,10 +184,16 @@ async def revoke_session(
         return ApiResponse(data={"message": "Session not found or already revoked"})
     return ApiResponse(data={"message": "Session revoked"})
 
+
 # ── Roles ────────────────────────────────────────────────────────────────
 
 from apps.api.core.dependencies import get_current_tenant_id
-from apps.api.modules.auth.schemas import RoleResponse, AssignRoleSchema, UserTenantRoleResponse
+from apps.api.modules.auth.schemas import (
+    RoleResponse,
+    AssignRoleSchema,
+    UserTenantRoleResponse,
+)
+
 
 @router.get(
     "/roles",
@@ -205,6 +209,7 @@ async def list_roles(
     result = await service.get_tenant_roles(tenant_id)
     return ApiResponse(data=result)
 
+
 @router.post(
     "/roles/assign",
     response_model=ApiResponse[UserTenantRoleResponse],
@@ -219,6 +224,7 @@ async def assign_role(
     service = AuthService(db)
     result = await service.assign_role(body.user_id, tenant_id, body.role_id)
     return ApiResponse(data=result)
+
 
 @router.post(
     "/roles/revoke",
@@ -248,7 +254,11 @@ async def revoke_role(
     description="Authenticate with Google ID token. Not yet implemented.",
 )
 async def google_login(body: GoogleLoginSchema) -> ApiResponse[dict]:
-    raise AppException("Google login is not yet implemented", status_code=501, error_code="NOT_IMPLEMENTED")
+    raise AppException(
+        "Google login is not yet implemented",
+        status_code=501,
+        error_code="NOT_IMPLEMENTED",
+    )
 
 
 @router.post(
@@ -258,4 +268,8 @@ async def google_login(body: GoogleLoginSchema) -> ApiResponse[dict]:
     description="Authenticate with Apple identity token. Not yet implemented.",
 )
 async def apple_login(body: AppleLoginSchema) -> ApiResponse[dict]:
-    raise AppException("Apple login is not yet implemented", status_code=501, error_code="NOT_IMPLEMENTED")
+    raise AppException(
+        "Apple login is not yet implemented",
+        status_code=501,
+        error_code="NOT_IMPLEMENTED",
+    )

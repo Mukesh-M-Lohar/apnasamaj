@@ -4,11 +4,9 @@ ApnaSamaj – Payment API Routes
 Endpoints for generating intents and receiving provider webhooks.
 """
 
-from __future__ import annotations
-
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.base_schema import ApiResponse, PaginatedResponse
@@ -63,7 +61,7 @@ async def payment_webhook(
     "",
     response_model=PaginatedResponse[TransactionResponse],
     summary="List Transactions",
-    dependencies=[Depends(RequirePermissions(Permission.FINANCE_VIEW))],
+    dependencies=[Depends(RequirePermissions(Permission.DONATION_READ))],
 )
 async def list_transactions(
     page: int = Query(default=1, ge=1),

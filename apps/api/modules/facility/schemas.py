@@ -12,7 +12,7 @@ from typing import Any
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from apps.api.core.base_schema import BaseResponse
+from apps.api.core.base_schema import BaseResponseSchema
 from apps.api.modules.facility.models import BookingStatus
 
 
@@ -32,20 +32,20 @@ class FacilityUpdateSchema(BaseModel):
     is_active: bool | None = None
 
 
-class FacilityResponse(BaseResponse):
+class FacilityResponse(BaseResponseSchema):
     name: str
     description: str | None
     capacity: int
     hourly_rate: Decimal | None
     is_active: bool
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class FacilityBookingCreateSchema(BaseModel):
     start_time: datetime
     end_time: datetime
-    
+
     @field_validator("end_time")
     def validate_time_range(cls, v: datetime, info: Any) -> datetime:
         if "start_time" in info.data and v <= info.data["start_time"]:
@@ -58,12 +58,12 @@ class FacilityBookingUpdateSchema(BaseModel):
     total_cost: Decimal | None = None
 
 
-class FacilityBookingResponse(BaseResponse):
+class FacilityBookingResponse(BaseResponseSchema):
     facility_id: UUID
     booked_by_id: UUID
     start_time: datetime
     end_time: datetime
     status: BookingStatus
     total_cost: Decimal | None
-    
+
     model_config = ConfigDict(from_attributes=True)

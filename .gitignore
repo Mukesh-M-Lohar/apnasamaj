@@ -52,3 +52,6 @@ logs/
 # ── Database ────────────────────────────────────────────────
 *.db
 *.sqlite3
+
+*screenshot*.py
+*venv*

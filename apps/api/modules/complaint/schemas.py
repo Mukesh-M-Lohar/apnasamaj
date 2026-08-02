@@ -6,11 +6,10 @@ Pydantic models for request validation and response serialization.
 
 from __future__ import annotations
 
-from typing import Any
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
-from apps.api.core.base_schema import BaseResponse
+from apps.api.core.base_schema import BaseResponseSchema
 from apps.api.modules.complaint.models import ComplaintPriority, ComplaintStatus
 
 
@@ -31,7 +30,7 @@ class ComplaintUpdateSchema(BaseModel):
     resolution_notes: str | None = None
 
 
-class ComplaintResponse(BaseResponse):
+class ComplaintResponse(BaseResponseSchema):
     title: str
     description: str
     status: ComplaintStatus
@@ -39,5 +38,5 @@ class ComplaintResponse(BaseResponse):
     reporter_id: UUID
     assigned_committee_id: UUID | None
     resolution_notes: str | None
-    
+
     model_config = ConfigDict(from_attributes=True)

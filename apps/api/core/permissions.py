@@ -9,17 +9,16 @@ Design decisions:
   • Super Admin bypasses all checks.
 """
 
-from __future__ import annotations
-
 from enum import StrEnum
 from typing import Any
 
-from fastapi import Depends, Request
+from fastapi import Request
 
 from apps.api.core.exceptions import ForbiddenException, UnauthorizedException
 
 
 # ── Built-in Role Names ─────────────────────────────────────────────────
+
 
 class RoleName(StrEnum):
     SUPER_ADMIN = "super_admin"
@@ -37,6 +36,7 @@ class RoleName(StrEnum):
 
 
 # ── Permission Strings ──────────────────────────────────────────────────
+
 
 class Permission(StrEnum):
     # Community
@@ -115,20 +115,47 @@ class Permission(StrEnum):
 DEFAULT_ROLE_PERMISSIONS: dict[RoleName, list[Permission]] = {
     RoleName.SUPER_ADMIN: list(Permission),  # All permissions
     RoleName.COMMUNITY_ADMIN: [
-        Permission.COMMUNITY_READ, Permission.COMMUNITY_UPDATE,
-        Permission.MEMBER_CREATE, Permission.MEMBER_READ, Permission.MEMBER_UPDATE, Permission.MEMBER_DELETE,
+        Permission.COMMUNITY_READ,
+        Permission.COMMUNITY_UPDATE,
+        Permission.MEMBER_CREATE,
+        Permission.MEMBER_READ,
+        Permission.MEMBER_UPDATE,
+        Permission.MEMBER_DELETE,
         Permission.MEMBER_EXPORT,
-        Permission.FAMILY_CREATE, Permission.FAMILY_READ, Permission.FAMILY_UPDATE, Permission.FAMILY_DELETE,
-        Permission.COMMITTEE_CREATE, Permission.COMMITTEE_READ, Permission.COMMITTEE_UPDATE, Permission.COMMITTEE_DELETE,
-        Permission.DONATION_CREATE, Permission.DONATION_READ, Permission.DONATION_UPDATE, Permission.DONATION_DELETE,
+        Permission.FAMILY_CREATE,
+        Permission.FAMILY_READ,
+        Permission.FAMILY_UPDATE,
+        Permission.FAMILY_DELETE,
+        Permission.COMMITTEE_CREATE,
+        Permission.COMMITTEE_READ,
+        Permission.COMMITTEE_UPDATE,
+        Permission.COMMITTEE_DELETE,
+        Permission.DONATION_CREATE,
+        Permission.DONATION_READ,
+        Permission.DONATION_UPDATE,
+        Permission.DONATION_DELETE,
         Permission.DONATION_EXPORT,
-        Permission.EVENT_CREATE, Permission.EVENT_READ, Permission.EVENT_UPDATE, Permission.EVENT_DELETE,
-        Permission.VOLUNTEER_CREATE, Permission.VOLUNTEER_READ, Permission.VOLUNTEER_UPDATE, Permission.VOLUNTEER_DELETE,
-        Permission.COMPLAINT_CREATE, Permission.COMPLAINT_READ, Permission.COMPLAINT_UPDATE, Permission.COMPLAINT_DELETE,
-        Permission.DOCUMENT_UPLOAD, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE,
-        Permission.NOTIFICATION_SEND, Permission.NOTIFICATION_READ,
-        Permission.REPORT_VIEW, Permission.REPORT_EXPORT,
-        Permission.SETTINGS_READ, Permission.SETTINGS_UPDATE,
+        Permission.EVENT_CREATE,
+        Permission.EVENT_READ,
+        Permission.EVENT_UPDATE,
+        Permission.EVENT_DELETE,
+        Permission.VOLUNTEER_CREATE,
+        Permission.VOLUNTEER_READ,
+        Permission.VOLUNTEER_UPDATE,
+        Permission.VOLUNTEER_DELETE,
+        Permission.COMPLAINT_CREATE,
+        Permission.COMPLAINT_READ,
+        Permission.COMPLAINT_UPDATE,
+        Permission.COMPLAINT_DELETE,
+        Permission.DOCUMENT_UPLOAD,
+        Permission.DOCUMENT_READ,
+        Permission.DOCUMENT_DELETE,
+        Permission.NOTIFICATION_SEND,
+        Permission.NOTIFICATION_READ,
+        Permission.REPORT_VIEW,
+        Permission.REPORT_EXPORT,
+        Permission.SETTINGS_READ,
+        Permission.SETTINGS_UPDATE,
         Permission.AUDIT_READ,
     ],
     RoleName.MEMBER: [
@@ -138,7 +165,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[RoleName, list[Permission]] = {
         Permission.COMMITTEE_READ,
         Permission.DONATION_READ,
         Permission.EVENT_READ,
-        Permission.COMPLAINT_CREATE, Permission.COMPLAINT_READ,
+        Permission.COMPLAINT_CREATE,
+        Permission.COMPLAINT_READ,
         Permission.DOCUMENT_READ,
         Permission.NOTIFICATION_READ,
     ],
@@ -150,6 +178,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[RoleName, list[Permission]] = {
 
 
 # ── FastAPI Dependency ───────────────────────────────────────────────────
+
 
 class RequirePermissions:
     """

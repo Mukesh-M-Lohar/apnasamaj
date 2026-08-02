@@ -10,11 +10,11 @@ import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlmodel import Field, Relationship, String, Text
-from sqlalchemy import Column, Numeric
+from sqlalchemy import ForeignKey, String, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
-from apps.api.core.models.base import BaseModel
+from apps.api.core.base_model import BaseModel
 
 if TYPE_CHECKING:
     from apps.api.modules.member.models import Member
@@ -38,28 +38,31 @@ class EntityType(str, enum.Enum):
     FACILITY_BOOKING = "facility_booking"
 
 
-class Transaction(BaseModel, table=True):
+class Transaction(BaseModel):
     """A financial transaction tied to an entity."""
+
     __tablename__ = "transactions"
 
-    amount: float = Field(sa_column=Column(Numeric(10, 2), nullable=False))
-    currency: str = Field(default="INR", max_length=3)
-    
-    status: TransactionStatus = Field(default=TransactionStatus.PENDING)
-    provider: PaymentProvider = Field(default=PaymentProvider.RAZORPAY)
-    
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), default="INR")
+
+    status: Mapped[TransactionStatus] = mapped_column(default=TransactionStatus.PENDING)
+    provider: Mapped[PaymentProvider] = mapped_column(default=PaymentProvider.RAZORPAY)
+
     # Stripe PaymentIntent ID or Razorpay Order ID
-    provider_reference: str | None = Field(default=None, sa_column=Column(String(255), unique=True))
-    
+    provider_reference: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+
     # What is this payment for?
-    related_entity_type: EntityType = Field(nullable=False)
-    related_entity_id: UUID = Field(nullable=False)
-    
+    related_entity_type: Mapped[EntityType] = mapped_column(nullable=False)
+    related_entity_id: Mapped[UUID] = mapped_column(nullable=False)
+
     # Who paid it
-    payer_id: UUID = Field(foreign_key="members.id", nullable=False)
-    
+    payer_id: Mapped[UUID] = mapped_column(ForeignKey("members.id"), nullable=False)
+
     # Dump full webhook payload for audit
-    provider_metadata: dict | None = Field(default=None, sa_column=Column(JSONB))
+    provider_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
-    payer: "Member" = Relationship()
+    payer: Mapped["Member"] = relationship()
