@@ -6,6 +6,8 @@ Welcome to the **ApnaSamaj** open-source community management platform documenta
 
 ApnaSamaj is an enterprise-ready digital platform designed to completely digitize residential communities, housing societies, and non-profits.
 
+![Admin Dashboard](assets/web_screenshot.png)
+
 ### Core Features
 - **Member Directory**: Securely manage members and families.
 - **Event & RSVP Engine**: Schedule community gatherings and track attendees.
