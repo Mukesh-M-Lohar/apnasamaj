@@ -42,12 +42,12 @@ export default function EventsScreen() {
         </View>
       </View>
       <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-      
+
       <View style={styles.infoRow}>
         <FontAwesome name="calendar" size={14} color="#64748b" />
         <Text style={styles.infoText}>{new Date(item.start_date).toLocaleString()}</Text>
       </View>
-      
+
       <View style={styles.infoRow}>
         <FontAwesome name="map-marker" size={14} color="#64748b" />
         <Text style={styles.infoText}>{item.location}</Text>
@@ -57,8 +57,8 @@ export default function EventsScreen() {
         <Text style={styles.spotsText}>
           {item.registered_count} / {item.max_attendees} spots filled
         </Text>
-        <TouchableOpacity 
-          style={styles.rsvpButton} 
+        <TouchableOpacity
+          style={styles.rsvpButton}
           onPress={() => handleRSVP(item.id)}
           disabled={item.registered_count >= item.max_attendees}
         >

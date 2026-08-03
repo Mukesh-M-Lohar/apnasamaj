@@ -38,6 +38,7 @@ router = APIRouter(prefix="/volunteers", tags=["Volunteers"])
 
 # ── Profiles ─────────────────────────────────────────────────────────────
 
+
 @router.post(
     "",
     response_model=ApiResponse[VolunteerResponse],
@@ -137,6 +138,7 @@ async def delete_volunteer(
 
 
 # ── Assignments ──────────────────────────────────────────────────────────
+
 
 @router.get(
     "/{volunteer_id}/assignments",

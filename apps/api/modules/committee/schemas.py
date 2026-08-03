@@ -14,8 +14,8 @@ from pydantic import Field, field_validator
 from apps.api.core.base_schema import BaseSchema
 from apps.api.modules.member.schemas import MemberListResponse
 
-
 # ── Committee ────────────────────────────────────────────────────────────
+
 
 class CommitteeCreateSchema(BaseSchema):
     name: str = Field(..., min_length=1, max_length=255)
@@ -53,6 +53,7 @@ class CommitteeUpdateSchema(BaseSchema):
 
 # ── Committee Members ────────────────────────────────────────────────────
 
+
 class AddCommitteeMemberSchema(BaseSchema):
     member_id: UUID
     position: str = Field(..., max_length=100)
@@ -71,7 +72,7 @@ class CommitteeMemberResponse(BaseSchema):
     joined_date: date | None = None
     left_date: date | None = None
     status: str
-    
+
     member: MemberListResponse
 
 
@@ -84,5 +85,5 @@ class CommitteeResponse(BaseSchema):
     status: str
     created_at: datetime
     updated_at: datetime
-    
+
     members: list[CommitteeMemberResponse] = Field(default_factory=list)

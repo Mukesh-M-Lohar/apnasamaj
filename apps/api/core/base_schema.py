@@ -22,6 +22,7 @@ T = TypeVar("T")
 
 # ── Standard API Envelope ────────────────────────────────────────────────
 
+
 class ApiResponse(BaseModel, Generic[T]):
     """Wrap every API response for consistent frontend parsing."""
 
@@ -48,6 +49,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 
 # ── Common Mixins ────────────────────────────────────────────────────────
+
 
 class TimestampMixin(BaseModel):
     """Read-only audit timestamps."""
@@ -79,6 +81,7 @@ class BaseResponseSchema(BaseSchema, TimestampMixin):
 
 
 # ── Request Helpers ──────────────────────────────────────────────────────
+
 
 class PaginationParams(BaseModel):
     """Query parameters for paginated endpoints."""

@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update, or_
+from sqlalchemy import Select, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.modules.member.models import Member
@@ -49,7 +49,7 @@ class MemberRepository:
         stmt = self._base_query().where(Member.id == member_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
-        
+
     async def get_by_user_id(self, user_id: UUID) -> Member | None:
         stmt = self._base_query().where(Member.user_id == user_id)
         result = await self._session.execute(stmt)
@@ -69,9 +69,13 @@ class MemberRepository:
     ) -> tuple[list[Member], int]:
         """Get members with filters, search, sorting, and pagination."""
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Member).where(
-            Member.tenant_id == self.tenant_id,
-            Member.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Member)
+            .where(
+                Member.tenant_id == self.tenant_id,
+                Member.is_deleted == False,  # noqa: E712
+            )
         )
 
         # Filters
@@ -119,9 +123,7 @@ class MemberRepository:
 
     # ── Update ───────────────────────────────────────────────────────────
 
-    async def update(
-        self, member_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
-    ) -> Member | None:
+    async def update(self, member_id: UUID, data: dict[str, Any], updated_by: UUID | None = None) -> Member | None:
         member = await self.get_by_id(member_id)
         if not member:
             return None
@@ -136,15 +138,13 @@ class MemberRepository:
         await self._session.flush()
         await self._session.refresh(member)
         return member
-        
+
     async def link_user(self, member_id: UUID, user_id: UUID, updated_by: UUID | None = None) -> bool:
         """Link a member profile to an actual User account."""
         stmt = (
             update(Member)
             .where(
-                Member.id == member_id, 
-                Member.tenant_id == self.tenant_id,
-                Member.is_deleted == False  # noqa: E712
+                Member.id == member_id, Member.tenant_id == self.tenant_id, Member.is_deleted == False  # noqa: E712
             )
             .values(user_id=user_id, updated_by=updated_by)
         )
@@ -157,21 +157,16 @@ class MemberRepository:
         stmt = (
             update(Member)
             .where(
-                Member.id == member_id, 
-                Member.tenant_id == self.tenant_id,
-                Member.is_deleted == False  # noqa: E712
+                Member.id == member_id, Member.tenant_id == self.tenant_id, Member.is_deleted == False  # noqa: E712
             )
-            .values(
-                is_deleted=True, 
-                status="inactive",
-                updated_by=deleted_by
-            )
+            .values(is_deleted=True, status="inactive", updated_by=deleted_by)
         )
         # Note: In a real app we might also need to handle the deleted_at timestamp,
         # but the base model might rely on application logic or DB triggers for it.
         # Since we use `BaseModel` we should ideally set it via object manipulation or literal values.
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = stmt.values(deleted_at=datetime.now(UTC))
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0

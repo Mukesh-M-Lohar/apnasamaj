@@ -30,11 +30,14 @@ class Document(BaseModel):
 
     # ── Polymorphic link ─────────────────────────────────────────────────
     entity_type: Mapped[str] = mapped_column(
-        String(50), nullable=False,
+        String(50),
+        nullable=False,
     )  # member, family, committee, event, complaint, etc.
 
     entity_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True,
+        UUID(as_uuid=True),
+        nullable=False,
+        index=True,
     )
 
     # ── File Info ────────────────────────────────────────────────────────
@@ -46,7 +49,8 @@ class Document(BaseModel):
 
     # ── Category ─────────────────────────────────────────────────────────
     category: Mapped[str | None] = mapped_column(
-        String(100), nullable=True,
+        String(100),
+        nullable=True,
     )  # photo, certificate, id_document, minutes, report
 
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -17,7 +17,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, tex
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from apps.api.core.base_model import Base, BaseModel, GlobalBaseModel
+from apps.api.core.base_model import Base, GlobalBaseModel
 
 
 class User(GlobalBaseModel):
@@ -49,8 +49,12 @@ class User(GlobalBaseModel):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # ── Relationships ────────────────────────────────────────────────────
-    sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    tenant_roles: Mapped[list["UserTenantRole"]] = relationship("UserTenantRole", back_populates="user", cascade="all, delete-orphan")
+    sessions: Mapped[list[UserSession]] = relationship(
+        "UserSession", back_populates="user", cascade="all, delete-orphan"
+    )
+    tenant_roles: Mapped[list[UserTenantRole]] = relationship(
+        "UserTenantRole", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserSession(GlobalBaseModel):
@@ -89,7 +93,7 @@ class UserSession(GlobalBaseModel):
     )
 
     # ── Relationships ────────────────────────────────────────────────────
-    user: Mapped["User"] = relationship("User", back_populates="sessions")
+    user: Mapped[User] = relationship("User", back_populates="sessions")
 
 
 class OTPRecord(Base):
@@ -120,6 +124,7 @@ class OTPRecord(Base):
 
 # ── Role & Permission Tables ────────────────────────────────────────────
 
+
 class Role(GlobalBaseModel):
     """Configurable roles – seeded with defaults, can be extended per tenant."""
 
@@ -139,7 +144,9 @@ class Role(GlobalBaseModel):
     )
 
     # ── Relationships ────────────────────────────────────────────────────
-    permissions: Mapped[list["RolePermission"]] = relationship("RolePermission", back_populates="role", cascade="all, delete-orphan")
+    permissions: Mapped[list[RolePermission]] = relationship(
+        "RolePermission", back_populates="role", cascade="all, delete-orphan"
+    )
 
 
 class PermissionRecord(GlobalBaseModel):
@@ -176,8 +183,8 @@ class RolePermission(Base):
     )
 
     # ── Relationships ────────────────────────────────────────────────────
-    role: Mapped["Role"] = relationship("Role", back_populates="permissions")
-    permission: Mapped["PermissionRecord"] = relationship("PermissionRecord")
+    role: Mapped[Role] = relationship("Role", back_populates="permissions")
+    permission: Mapped[PermissionRecord] = relationship("PermissionRecord")
 
 
 class UserTenantRole(Base):
@@ -216,4 +223,4 @@ class UserTenantRole(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"), nullable=False)
 
     # ── Relationships ────────────────────────────────────────────────────
-    user: Mapped["User"] = relationship("User", back_populates="tenant_roles")
+    user: Mapped[User] = relationship("User", back_populates="tenant_roles")

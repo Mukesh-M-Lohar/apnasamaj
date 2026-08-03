@@ -39,6 +39,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT ──────────────────────────────────────────────────────────────────
 
+
 def create_access_token(
     user_id: UUID,
     tenant_id: UUID | None = None,
@@ -91,6 +92,7 @@ def decode_token(token: str) -> dict[str, Any]:
 
 
 # ── OTP ──────────────────────────────────────────────────────────────────
+
 
 def generate_otp(length: int | None = None) -> str:
     """Generate a cryptographically secure numeric OTP."""

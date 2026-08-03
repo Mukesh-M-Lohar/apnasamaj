@@ -110,14 +110,12 @@ class VolunteerService:
         )
         if not volunteer:
             raise NotFoundException("Volunteer", str(volunteer_id))
-            
+
         return VolunteerResponse.model_validate(volunteer)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_volunteer(
-        self, volunteer_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_volunteer(self, volunteer_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a volunteer profile."""
         success = await self._repo.soft_delete(volunteer_id, deleted_by)
         if not success:
@@ -128,10 +126,7 @@ class VolunteerService:
     # ── Assignments ──────────────────────────────────────────────────────
 
     async def assign_volunteer(
-        self, 
-        volunteer_id: UUID, 
-        data: VolunteerAssignmentCreateSchema, 
-        created_by: UUID | None = None
+        self, volunteer_id: UUID, data: VolunteerAssignmentCreateSchema, created_by: UUID | None = None
     ) -> VolunteerAssignmentResponse:
         """Assign a volunteer to an event."""
         # Ensure volunteer exists
@@ -153,10 +148,7 @@ class VolunteerService:
         return [VolunteerAssignmentResponse.model_validate(a) for a in assignments]
 
     async def update_assignment(
-        self,
-        assignment_id: UUID,
-        data: VolunteerAssignmentUpdateSchema,
-        updated_by: UUID | None = None
+        self, assignment_id: UUID, data: VolunteerAssignmentUpdateSchema, updated_by: UUID | None = None
     ) -> VolunteerAssignmentResponse:
         """
         Update an assignment (e.g. check-out, log hours).
@@ -164,16 +156,14 @@ class VolunteerService:
         """
         update_data = data.model_dump(exclude_unset=True)
         assignment = await self._repo.update_assignment(
-            assignment_id=assignment_id,
-            data=update_data,
-            updated_by=updated_by
+            assignment_id=assignment_id, data=update_data, updated_by=updated_by
         )
-        
+
         if not assignment:
             raise NotFoundException("VolunteerAssignment", str(assignment_id))
-            
+
         # If attendance or hours are updated, recalculate the volunteer stats
         if "hours" in update_data or "attended" in update_data:
             await self._repo.update_volunteer_stats(assignment.volunteer_id)
-            
+
         return VolunteerAssignmentResponse.model_validate(assignment)

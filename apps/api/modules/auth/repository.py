@@ -14,7 +14,7 @@ import hashlib
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.config import get_settings
@@ -69,11 +69,7 @@ class AuthRepository:
         return user
 
     async def update_last_login(self, user_id: UUID) -> None:
-        stmt = (
-            update(User)
-            .where(User.id == user_id)
-            .values(last_login_at=datetime.now(UTC))
-        )
+        stmt = update(User).where(User.id == user_id).values(last_login_at=datetime.now(UTC))
         await self._session.execute(stmt)
 
     # ── OTP ──────────────────────────────────────────────────────────────
@@ -115,19 +111,11 @@ class AuthRepository:
         return result.scalar_one_or_none()
 
     async def increment_otp_attempts(self, otp_id: UUID) -> None:
-        stmt = (
-            update(OTPRecord)
-            .where(OTPRecord.id == otp_id)
-            .values(attempts=OTPRecord.attempts + 1)
-        )
+        stmt = update(OTPRecord).where(OTPRecord.id == otp_id).values(attempts=OTPRecord.attempts + 1)
         await self._session.execute(stmt)
 
     async def mark_otp_verified(self, otp_id: UUID) -> None:
-        stmt = (
-            update(OTPRecord)
-            .where(OTPRecord.id == otp_id)
-            .values(is_verified=True)
-        )
+        stmt = update(OTPRecord).where(OTPRecord.id == otp_id).values(is_verified=True)
         await self._session.execute(stmt)
 
     async def _invalidate_existing_otps(self, mobile: str) -> None:
@@ -194,11 +182,7 @@ class AuthRepository:
         return list(result.scalars().all())
 
     async def revoke_session(self, session_id: UUID) -> bool:
-        stmt = (
-            update(UserSession)
-            .where(UserSession.id == session_id)
-            .values(is_revoked=True)
-        )
+        stmt = update(UserSession).where(UserSession.id == session_id).values(is_revoked=True)
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -258,9 +242,12 @@ class AuthRepository:
 
     async def get_tenant_roles(self, tenant_id: UUID) -> list[Role]:
         from sqlalchemy import or_
-        stmt = select(Role).where(
-            or_(Role.tenant_id == tenant_id, Role.is_system == True)  # noqa: E712
-        ).order_by(Role.name.asc())
+
+        stmt = (
+            select(Role)
+            .where(or_(Role.tenant_id == tenant_id, Role.is_system == True))  # noqa: E712
+            .order_by(Role.name.asc())
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -271,34 +258,26 @@ class AuthRepository:
 
     async def assign_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> UserTenantRole:
         stmt = select(UserTenantRole).where(
-            UserTenantRole.user_id == user_id,
-            UserTenantRole.tenant_id == tenant_id,
-            UserTenantRole.role_id == role_id
+            UserTenantRole.user_id == user_id, UserTenantRole.tenant_id == tenant_id, UserTenantRole.role_id == role_id
         )
         result = await self._session.execute(stmt)
         utr = result.scalar_one_or_none()
-        
+
         if utr:
             utr.is_active = True
         else:
-            utr = UserTenantRole(
-                user_id=user_id,
-                tenant_id=tenant_id,
-                role_id=role_id,
-                is_active=True
-            )
+            utr = UserTenantRole(user_id=user_id, tenant_id=tenant_id, role_id=role_id, is_active=True)
             self._session.add(utr)
-            
+
         await self._session.flush()
         await self._session.refresh(utr)
         return utr
 
     async def revoke_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> bool:
         from sqlalchemy import delete
+
         stmt = delete(UserTenantRole).where(
-            UserTenantRole.user_id == user_id,
-            UserTenantRole.tenant_id == tenant_id,
-            UserTenantRole.role_id == role_id
+            UserTenantRole.user_id == user_id, UserTenantRole.tenant_id == tenant_id, UserTenantRole.role_id == role_id
         )
         result = await self._session.execute(stmt)
         return result.rowcount > 0

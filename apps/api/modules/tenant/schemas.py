@@ -13,8 +13,8 @@ from pydantic import Field, field_validator
 
 from apps.api.core.base_schema import BaseSchema
 
-
 # ── Create ───────────────────────────────────────────────────────────────
+
 
 class CommunityCreateSchema(BaseSchema):
     """POST /communities – create a new community."""
@@ -54,6 +54,7 @@ class CommunityCreateSchema(BaseSchema):
 
 # ── Update ───────────────────────────────────────────────────────────────
 
+
 class CommunityUpdateSchema(BaseSchema):
     """PATCH /communities/{id} – partial update."""
 
@@ -83,6 +84,7 @@ class CommunityUpdateSchema(BaseSchema):
 
 # ── Settings ─────────────────────────────────────────────────────────────
 
+
 class CommunitySettingsSchema(BaseSchema):
     """PUT /communities/{id}/settings – update community settings."""
 
@@ -90,6 +92,7 @@ class CommunitySettingsSchema(BaseSchema):
 
 
 # ── Response ─────────────────────────────────────────────────────────────
+
 
 class CommunityResponse(BaseSchema):
     """Full community detail response."""
@@ -140,6 +143,7 @@ class CommunityListResponse(BaseSchema):
 
 # ── Onboarding ───────────────────────────────────────────────────────────
 
+
 class CommunityOnboardSchema(BaseSchema):
     """
     POST /communities/onboard – create community + assign admin.
@@ -161,6 +165,7 @@ class CommunityOnboardResponse(BaseSchema):
 
 
 # ── Member Invite ────────────────────────────────────────────────────────
+
 
 class InviteMemberSchema(BaseSchema):
     """POST /communities/{id}/invite – invite a user by mobile."""

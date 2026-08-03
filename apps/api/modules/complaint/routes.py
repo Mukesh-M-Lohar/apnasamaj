@@ -36,8 +36,8 @@ router = APIRouter(prefix="/complaints", tags=["Complaints"])
     response_model=ApiResponse[ComplaintResponse],
     summary="Raise Complaint",
     description="Submit a new issue or suggestion.",
-    # Depending on config, members could raise it without admin permission, 
-    # but we'll use a generic permission or rely on user_id. 
+    # Depending on config, members could raise it without admin permission,
+    # but we'll use a generic permission or rely on user_id.
     # Here we assume any authenticated user can raise a complaint if they have basic access.
 )
 async def create_complaint(
@@ -47,7 +47,7 @@ async def create_complaint(
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[ComplaintResponse]:
     service = ComplaintService(db, tenant_id)
-    # Using user_id as the reporter_id for now. In a real app, 
+    # Using user_id as the reporter_id for now. In a real app,
     # we would look up their Member ID via user_id.
     result = await service.create_complaint(body, reporter_id=user_id)
     return ApiResponse(data=result)
@@ -98,7 +98,7 @@ async def get_complaint(
     response_model=ApiResponse[ComplaintResponse],
     summary="Update Complaint",
     description="Update status, assign committee, or add resolution notes.",
-    dependencies=[Depends(RequirePermissions(Permission.COMMUNITY_UPDATE))], # Requires some elevated access
+    dependencies=[Depends(RequirePermissions(Permission.COMMUNITY_UPDATE))],  # Requires some elevated access
 )
 async def update_complaint(
     complaint_id: UUID,

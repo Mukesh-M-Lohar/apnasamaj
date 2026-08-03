@@ -6,7 +6,7 @@ interface AuthState {
   accessToken: string | null;
   tenantId: string | null;
   user: any | null;
-  
+
   login: (token: string, tenant: string, userData: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.setItemAsync('access_token', token);
     await SecureStore.setItemAsync('tenant_id', tenant);
     // Ideally, we'd stringify user data or just fetch it later
-    
+
     set({
       isAuthenticated: true,
       accessToken: token,
@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await SecureStore.deleteItemAsync('access_token');
     await SecureStore.deleteItemAsync('tenant_id');
-    
+
     set({
       isAuthenticated: false,
       accessToken: null,
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkAuth: async () => {
     const token = await SecureStore.getItemAsync('access_token');
     const tenant = await SecureStore.getItemAsync('tenant_id');
-    
+
     if (token && tenant) {
       set({
         isAuthenticated: true,

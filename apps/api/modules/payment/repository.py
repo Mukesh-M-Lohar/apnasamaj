@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.modules.payment.models import Transaction, TransactionStatus
@@ -45,18 +45,20 @@ class PaymentRepository:
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def update_status(self, transaction_id: UUID, status: TransactionStatus, metadata: dict | None = None) -> Transaction | None:
+    async def update_status(
+        self, transaction_id: UUID, status: TransactionStatus, metadata: dict | None = None
+    ) -> Transaction | None:
         stmt = self._base_query().where(Transaction.id == transaction_id)
         result = await self._session.execute(stmt)
         transaction = result.scalar_one_or_none()
-        
+
         if not transaction:
             return None
-            
+
         transaction.status = status
         if metadata:
             transaction.provider_metadata = metadata
-            
+
         await self._session.flush()
         await self._session.refresh(transaction)
         return transaction
@@ -67,9 +69,13 @@ class PaymentRepository:
         limit: int = 20,
     ) -> tuple[list[Transaction], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Transaction).where(
-            Transaction.tenant_id == self.tenant_id,
-            Transaction.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Transaction)
+            .where(
+                Transaction.tenant_id == self.tenant_id,
+                Transaction.is_deleted == False,  # noqa: E712
+            )
         )
 
         total_result = await self._session.execute(count_stmt)

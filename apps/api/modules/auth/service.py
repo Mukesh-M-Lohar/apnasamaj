@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.config import get_settings
 from apps.api.core.exceptions import (
+    NotFoundException,
     OTPException,
     RateLimitException,
     UnauthorizedException,
@@ -67,9 +68,7 @@ class AuthService:
             elapsed = (datetime.now(UTC) - existing.created_at).total_seconds()
             if elapsed < settings.OTP_RESEND_COOLDOWN_SECONDS:
                 remaining = int(settings.OTP_RESEND_COOLDOWN_SECONDS - elapsed)
-                raise RateLimitException(
-                    message=f"Please wait {remaining} seconds before requesting a new OTP"
-                )
+                raise RateLimitException(message=f"Please wait {remaining} seconds before requesting a new OTP")
 
         otp = generate_otp()
         await self._repo.create_otp_record(mobile, otp)
@@ -272,7 +271,7 @@ class AuthService:
         if not user:
             raise UnauthorizedException("User not found")
 
-        tenant_ids = await self._repo.get_user_tenants(user_id)
+        # tenant_ids = await self._repo.get_user_tenants(user_id)
 
         return UserProfileResponse(
             id=user.id,
@@ -314,7 +313,7 @@ class AuthService:
         return await self._repo.revoke_session(session_id)
 
     # ── Roles ────────────────────────────────────────────────────────────
-    
+
     async def get_tenant_roles(self, tenant_id: UUID) -> list[dict]:
         roles = await self._repo.get_tenant_roles(tenant_id)
         return [
@@ -323,19 +322,20 @@ class AuthService:
                 "name": r.name,
                 "display_name": r.display_name,
                 "description": r.description,
-                "is_system": r.is_system
-            } for r in roles
+                "is_system": r.is_system,
+            }
+            for r in roles
         ]
 
     async def assign_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> dict:
         user = await self._repo.find_user_by_id(user_id)
         if not user:
             raise NotFoundException("User", str(user_id))
-            
+
         role = await self._repo.get_role_by_id(role_id)
         if not role:
             raise NotFoundException("Role", str(role_id))
-            
+
         utr = await self._repo.assign_role(user_id, tenant_id, role_id)
         return {
             "id": utr.id,
@@ -343,8 +343,8 @@ class AuthService:
             "tenant_id": utr.tenant_id,
             "role_id": utr.role_id,
             "is_active": utr.is_active,
-            "created_at": utr.created_at
+            "created_at": utr.created_at,
         }
-        
+
     async def revoke_role(self, user_id: UUID, tenant_id: UUID, role_id: UUID) -> bool:
         return await self._repo.revoke_role(user_id, tenant_id, role_id)

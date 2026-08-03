@@ -24,9 +24,9 @@ export default function VerifyScreen() {
         device_id: "mobile-app-device",
         device_name: "Mobile App"
       };
-      
+
       const response = await apiClient.post('/auth/verify-otp', payload);
-      
+
       const { access_token, user } = response.data.data;
       // In a multi-tenant app, user.tenant_id might be the primary one.
       // We will assume user object has a default tenant or we pull the first tenant role
@@ -59,8 +59,8 @@ export default function VerifyScreen() {
         />
       </View>
 
-      <TouchableOpacity 
-        style={[styles.button, loading && styles.buttonDisabled]} 
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleVerify}
         disabled={loading}
       >

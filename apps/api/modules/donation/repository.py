@@ -6,9 +6,9 @@ Database operations for tracking financial donations.
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 from uuid import UUID
-from datetime import date
 
 from sqlalchemy import Select, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,15 +49,12 @@ class DonationRepository:
         stmt = self._base_query().where(Donation.id == donation_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
-        
+
     async def get_last_receipt_number(self, prefix: str) -> str | None:
         """Fetch the highest receipt number starting with the given prefix."""
         stmt = (
             select(Donation.receipt_number)
-            .where(
-                Donation.tenant_id == self.tenant_id,
-                Donation.receipt_number.like(f"{prefix}%")
-            )
+            .where(Donation.tenant_id == self.tenant_id, Donation.receipt_number.like(f"{prefix}%"))
             .order_by(Donation.receipt_number.desc())
             .limit(1)
         )
@@ -77,19 +74,23 @@ class DonationRepository:
         sort_order: str = "desc",
     ) -> tuple[list[Donation], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Donation).where(
-            Donation.tenant_id == self.tenant_id,
-            Donation.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Donation)
+            .where(
+                Donation.tenant_id == self.tenant_id,
+                Donation.is_deleted == False,  # noqa: E712
+            )
         )
 
         if purpose:
             stmt = stmt.where(Donation.purpose == purpose)
             count_stmt = count_stmt.where(Donation.purpose == purpose)
-            
+
         if payment_mode:
             stmt = stmt.where(Donation.payment_mode == payment_mode)
             count_stmt = count_stmt.where(Donation.payment_mode == payment_mode)
-            
+
         if member_id:
             stmt = stmt.where(Donation.member_id == member_id)
             count_stmt = count_stmt.where(Donation.member_id == member_id)
@@ -97,7 +98,7 @@ class DonationRepository:
         if start_date:
             stmt = stmt.where(Donation.donation_date >= start_date)
             count_stmt = count_stmt.where(Donation.donation_date >= start_date)
-            
+
         if end_date:
             stmt = stmt.where(Donation.donation_date <= end_date)
             count_stmt = count_stmt.where(Donation.donation_date <= end_date)
@@ -115,7 +116,7 @@ class DonationRepository:
         return donations, total
 
     # ── Rollups / Summary ────────────────────────────────────────────────
-    
+
     async def get_summary(
         self,
         start_date: date | None = None,
@@ -125,56 +126,60 @@ class DonationRepository:
         base_filter = [
             Donation.tenant_id == self.tenant_id,
             Donation.is_deleted == False,  # noqa: E712
-            Donation.status == "completed"
+            Donation.status == "completed",
         ]
-        
+
         if start_date:
             base_filter.append(Donation.donation_date >= start_date)
         if end_date:
             base_filter.append(Donation.donation_date <= end_date)
-            
+
         # 1. Total sum and count
         total_stmt = select(
-            func.sum(Donation.amount).label("total_amount"),
-            func.count(Donation.id).label("total_count")
+            func.sum(Donation.amount).label("total_amount"), func.count(Donation.id).label("total_count")
         ).where(*base_filter)
         total_res = await self._session.execute(total_stmt)
         total_row = total_res.first()
-        
+
         # 2. Group by purpose
-        purpose_stmt = select(
-            Donation.purpose,
-            func.sum(Donation.amount).label("total_amount"),
-            func.count(Donation.id).label("count")
-        ).where(*base_filter).group_by(Donation.purpose)
+        purpose_stmt = (
+            select(
+                Donation.purpose,
+                func.sum(Donation.amount).label("total_amount"),
+                func.count(Donation.id).label("count"),
+            )
+            .where(*base_filter)
+            .group_by(Donation.purpose)
+        )
         purpose_res = await self._session.execute(purpose_stmt)
-        
+
         # 3. Group by payment mode
-        mode_stmt = select(
-            Donation.payment_mode,
-            func.sum(Donation.amount).label("total_amount"),
-            func.count(Donation.id).label("count")
-        ).where(*base_filter).group_by(Donation.payment_mode)
+        mode_stmt = (
+            select(
+                Donation.payment_mode,
+                func.sum(Donation.amount).label("total_amount"),
+                func.count(Donation.id).label("count"),
+            )
+            .where(*base_filter)
+            .group_by(Donation.payment_mode)
+        )
         mode_res = await self._session.execute(mode_stmt)
-        
+
         return {
             "total_amount": total_row.total_amount or 0,
             "total_count": total_row.total_count or 0,
             "by_purpose": [
-                {"group_key": row.purpose, "total_amount": row.total_amount, "count": row.count}
-                for row in purpose_res
+                {"group_key": row.purpose, "total_amount": row.total_amount, "count": row.count} for row in purpose_res
             ],
             "by_payment_mode": [
                 {"group_key": row.payment_mode, "total_amount": row.total_amount, "count": row.count}
                 for row in mode_res
-            ]
+            ],
         }
 
     # ── Update ───────────────────────────────────────────────────────────
 
-    async def update(
-        self, donation_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
-    ) -> Donation | None:
+    async def update(self, donation_id: UUID, data: dict[str, Any], updated_by: UUID | None = None) -> Donation | None:
         donation = await self.get_by_id(donation_id)
         if not donation:
             return None
@@ -198,12 +203,13 @@ class DonationRepository:
             .where(
                 Donation.id == donation_id,
                 Donation.tenant_id == self.tenant_id,
-                Donation.is_deleted == False  # noqa: E712
+                Donation.is_deleted == False,  # noqa: E712
             )
             .values(is_deleted=True, updated_by=deleted_by)
         )
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = stmt.values(deleted_at=datetime.now(UTC))
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0

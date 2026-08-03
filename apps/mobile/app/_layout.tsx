@@ -48,7 +48,7 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
   const router = useRouter();
-  
+
   const { isAuthenticated, checkAuth } = useAuthStore();
 
   useEffect(() => {

@@ -15,18 +15,18 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.exceptions import (
-    NotFoundException,
     AppException,
+    NotFoundException,
 )
 from apps.api.modules.family.repository import FamilyRepository
 from apps.api.modules.family.schemas import (
-    FamilyCreateSchema,
-    FamilyResponse,
-    FamilyUpdateSchema,
     AddFamilyMemberSchema,
+    FamilyCreateSchema,
     FamilyMemberResponse,
-    FamilyTreeResponse,
+    FamilyResponse,
     FamilyTreeNode,
+    FamilyTreeResponse,
+    FamilyUpdateSchema,
 )
 from apps.api.modules.member.schemas import MemberResponse
 
@@ -52,19 +52,15 @@ class FamilyService:
             created_by=created_by,
         )
         logger.info("Family created: %s", family.name)
-        
+
         # If head is provided, add them as head
         if data.family_head_id:
             await self.add_member(
-                family.id, 
-                AddFamilyMemberSchema(
-                    member_id=data.family_head_id,
-                    relationship_type="head",
-                    generation=0
-                ),
-                created_by=created_by
+                family.id,
+                AddFamilyMemberSchema(member_id=data.family_head_id, relationship_type="head", generation=0),
+                created_by=created_by,
             )
-            
+
         return await self.get_family(family.id)
 
     # ── Read ─────────────────────────────────────────────────────────────
@@ -74,9 +70,9 @@ class FamilyService:
         family = await self._repo.get_by_id(family_id)
         if not family:
             raise NotFoundException("Family", str(family_id))
-            
+
         members_data = await self._repo.get_family_members(family_id)
-        
+
         # Map to response schema
         members = []
         for fm in members_data:
@@ -89,10 +85,10 @@ class FamilyService:
                     related_to_member_id=fm.related_to_member_id,
                     relationship_type=fm.relationship_type,
                     generation=fm.generation,
-                    member=member_resp
+                    member=member_resp,
                 )
             )
-            
+
         response = FamilyResponse.model_validate(family)
         response.members = members
         return response
@@ -146,14 +142,12 @@ class FamilyService:
         )
         if not family:
             raise NotFoundException("Family", str(family_id))
-            
+
         return await self.get_family(family_id)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_family(
-        self, family_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_family(self, family_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a family."""
         success = await self._repo.soft_delete(family_id, deleted_by)
         if not success:
@@ -173,7 +167,7 @@ class FamilyService:
         family = await self._repo.get_by_id(family_id)
         if not family:
             raise NotFoundException("Family", str(family_id))
-            
+
         # Determine generation dynamically if not provided
         gen = data.generation
         if gen is None:
@@ -196,16 +190,16 @@ class FamilyService:
             relationship_type=data.relationship_type,
             related_to_member_id=data.related_to_member_id,
             generation=gen,
-            created_by=created_by
+            created_by=created_by,
         )
-        
+
         # We need the full member data for the response, fetch it via get_family
         # This is slightly inefficient but safe.
         full_family = await self.get_family(family_id)
         for member in full_family.members:
             if member.id == fm.id:
                 return member
-                
+
         raise AppException("Failed to retrieve added family member")
 
     async def remove_member(self, family_id: UUID, member_id: UUID) -> dict:
@@ -220,24 +214,21 @@ class FamilyService:
     async def get_family_tree(self, family_id: UUID) -> FamilyTreeResponse:
         """Generate a hierarchical tree of the family."""
         full_family = await self.get_family(family_id)
-        
+
         if not full_family.members:
             return FamilyTreeResponse(family=full_family, tree=None)
-            
+
         # Find the head
         head_node = None
         nodes = {}
-        
+
         # Initialize nodes
         for fm in full_family.members:
             node = FamilyTreeNode(
-                member=fm.member,
-                relationship_type=fm.relationship_type,
-                generation=fm.generation,
-                children=[]
+                member=fm.member, relationship_type=fm.relationship_type, generation=fm.generation, children=[]
             )
             nodes[fm.member_id] = {"node": node, "data": fm}
-            
+
             # Use explicit family_head_id if available, otherwise fallback to "head" relationship
             if full_family.family_head_id and fm.member_id == full_family.family_head_id:
                 head_node = node
@@ -247,30 +238,30 @@ class FamilyService:
         # If no explicit head, just pick the first member
         if not head_node and nodes:
             head_node = list(nodes.values())[0]["node"]
-            
+
         # Build tree based on related_to_member_id
         for member_id, info in nodes.items():
             node = info["node"]
             fm_data = info["data"]
-            
+
             # Skip the root itself
             if node == head_node:
                 continue
-                
+
             parent_id = fm_data.related_to_member_id
-            
+
             # Fallback logic if related_to is not specified
             if not parent_id:
                 if fm_data.relationship_type in ["son", "daughter", "child"]:
                     parent_id = head_node.member.id
                 elif fm_data.relationship_type == "spouse":
                     parent_id = head_node.member.id
-            
+
             # Attach to parent if parent exists
             if parent_id and parent_id in nodes:
                 nodes[parent_id]["node"].children.append(node)
             else:
                 # If we can't figure out who they are related to, attach to head
                 head_node.children.append(node)
-                
+
         return FamilyTreeResponse(family=full_family, tree=head_node)

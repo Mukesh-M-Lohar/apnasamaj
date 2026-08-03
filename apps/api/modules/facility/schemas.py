@@ -10,6 +10,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from apps.api.core.base_schema import BaseResponseSchema

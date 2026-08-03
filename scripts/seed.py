@@ -7,7 +7,7 @@ for local development.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 from faker import Faker
@@ -18,18 +18,18 @@ from apps.api.core.config import get_settings
 
 # --- Imports for all modules ---
 from apps.api.modules.auth.models import User
-from apps.api.modules.tenant.models import Tenant
-from apps.api.modules.member.models import Member
-from apps.api.modules.family.models import Family, FamilyMember
 from apps.api.modules.committee.models import Committee, CommitteeMember
-from apps.api.modules.event.models import Event, EventRSVP
-from apps.api.modules.volunteer.models import VolunteerTask, TaskAssignment
-from apps.api.modules.donation.models import Donation
 from apps.api.modules.complaint.models import Complaint
+from apps.api.modules.donation.models import Donation
+from apps.api.modules.event.models import Event, EventRegistration
 from apps.api.modules.facility.models import Facility, FacilityBooking
+from apps.api.modules.family.models import Family, FamilyMember
+from apps.api.modules.member.models import Member
 from apps.api.modules.notification.models import Notification
+from apps.api.modules.payment.models import EntityType, PaymentProvider, Transaction, TransactionStatus
 from apps.api.modules.poll.models import Poll, PollOption, PollVote
-from apps.api.modules.payment.models import Transaction
+from apps.api.modules.tenant.models import Tenant
+from apps.api.modules.volunteer.models import Volunteer, VolunteerAssignment
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ fake = Faker("en_IN")
 
 async def seed_database():
     settings = get_settings()
-    engine = create_async_engine(str(settings.DATABASE_URL), echo=False)
+    engine = create_async_engine(settings.DATABASE_URL, echo=False)
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with async_session() as session:
@@ -113,9 +113,9 @@ async def seed_database():
         family = Family(
             id=uuid4(),
             tenant_id=tenant.id,
-            head_member_id=admin.id,
-            family_name="Admin Household",
-            address=fake.address(),
+            family_head_id=admin.id,
+            name="Admin Household",
+            address_line1=fake.address()[:255],
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
@@ -127,7 +127,7 @@ async def seed_database():
             tenant_id=tenant.id,
             family_id=family.id,
             member_id=members[0].id,
-            relation="spouse",
+            relationship_type="head",
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
@@ -151,68 +151,71 @@ async def seed_database():
             tenant_id=tenant.id,
             committee_id=committee.id,
             member_id=admin.id,
-            role="head",
+            position="President",
+            joined_date=date.today(),
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
         session.add(committee_member)
         logger.info("Created Cultural Committee.")
 
-        # 5. Events & RSVPs
+        # 5. Events & Registrations
+        today = date.today()
         event = Event(
             id=uuid4(),
             tenant_id=tenant.id,
             title="Diwali Gala 2026",
             description="Annual community Diwali celebration.",
-            start_time=datetime.now(timezone.utc) + timedelta(days=10),
-            end_time=datetime.now(timezone.utc) + timedelta(days=10, hours=5),
-            location="Community Hall",
-            organizer_committee_id=committee.id,
+            event_type="festival",
+            start_date=today + timedelta(days=10),
+            end_date=today + timedelta(days=10),
+            venue="Community Hall",
+            committee_id=committee.id,
+            status="upcoming",
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
         session.add(event)
         await session.flush()
 
-        rsvp = EventRSVP(
+        registration = EventRegistration(
             id=uuid4(),
             tenant_id=tenant.id,
             event_id=event.id,
             member_id=members[1].id,
-            status="going",
-            guest_count=2,
+            status="registered",
+            guests=2,
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
-        session.add(rsvp)
-        logger.info("Created Event and RSVPs.")
+        session.add(registration)
+        logger.info("Created Event and Registrations.")
 
-        # 6. Volunteer Tasks
-        task = VolunteerTask(
+        # 6. Volunteers & Assignments
+        volunteer = Volunteer(
             id=uuid4(),
             tenant_id=tenant.id,
-            title="Stage Setup for Diwali",
-            description="Help setup the main stage.",
-            status="open",
-            priority="high",
-            associated_event_id=event.id,
+            member_id=members[2].id,
+            skills=["decoration", "logistics"],
+            availability="weekends",
+            status="active",
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
-        session.add(task)
+        session.add(volunteer)
         await session.flush()
 
-        assignment = TaskAssignment(
+        assignment = VolunteerAssignment(
             id=uuid4(),
             tenant_id=tenant.id,
-            task_id=task.id,
-            volunteer_id=members[2].id,
-            status="accepted",
+            volunteer_id=volunteer.id,
+            event_id=event.id,
+            role="Stage Setup",
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
         session.add(assignment)
-        logger.info("Created Volunteer Tasks and Assignments.")
+        logger.info("Created Volunteer and Assignment.")
 
         # 7. Donations
         donation = Donation(
@@ -221,10 +224,12 @@ async def seed_database():
             member_id=members[3].id,
             amount=5000.00,
             currency="INR",
-            type="event",
+            donation_date=today,
+            purpose="festival",
+            payment_mode="upi",
             status="completed",
             event_id=event.id,
-            notes="For Diwali firecrackers",
+            remarks="For Diwali firecrackers",
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
@@ -237,9 +242,7 @@ async def seed_database():
             tenant_id=tenant.id,
             title="Leaking pipe in Block A",
             description="Water is leaking near the parking area.",
-            status="open",
-            priority="high",
-            raised_by_id=members[4].id,
+            reporter_id=members[4].id,
             assigned_committee_id=committee.id,
             created_by=admin_user_id,
             updated_by=admin_user_id,
@@ -267,8 +270,8 @@ async def seed_database():
             tenant_id=tenant.id,
             facility_id=facility.id,
             booked_by_id=members[5].id,
-            start_time=datetime.now(timezone.utc) + timedelta(days=2),
-            end_time=datetime.now(timezone.utc) + timedelta(days=2, hours=3),
+            start_time=datetime.now(UTC) + timedelta(days=2),
+            end_time=datetime.now(UTC) + timedelta(days=2, hours=3),
             status="confirmed",
             created_by=admin_user_id,
             updated_by=admin_user_id,
@@ -282,9 +285,7 @@ async def seed_database():
             tenant_id=tenant.id,
             title="Maintenance Drive",
             message="Please clear the parking lot on Sunday.",
-            channel="push",
-            status="sent",
-            sender_id=admin_user_id,
+            sender_id=admin.id,
             created_by=admin_user_id,
             updated_by=admin_user_id,
         )
@@ -296,7 +297,7 @@ async def seed_database():
             id=uuid4(),
             tenant_id=tenant.id,
             question="Should we install solar panels?",
-            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+            expires_at=datetime.now(UTC) + timedelta(days=7),
             is_active=True,
             created_by=admin_user_id,
             updated_by=admin_user_id,
@@ -304,12 +305,8 @@ async def seed_database():
         session.add(poll)
         await session.flush()
 
-        opt_yes = PollOption(
-            id=uuid4(), tenant_id=tenant.id, poll_id=poll.id, text="Yes", vote_count=1
-        )
-        opt_no = PollOption(
-            id=uuid4(), tenant_id=tenant.id, poll_id=poll.id, text="No", vote_count=0
-        )
+        opt_yes = PollOption(id=uuid4(), tenant_id=tenant.id, poll_id=poll.id, text="Yes", vote_count=1)
+        opt_no = PollOption(id=uuid4(), tenant_id=tenant.id, poll_id=poll.id, text="No", vote_count=0)
         session.add_all([opt_yes, opt_no])
         await session.flush()
 
@@ -331,10 +328,10 @@ async def seed_database():
             tenant_id=tenant.id,
             amount=5000.00,
             currency="INR",
-            status="succeeded",
-            provider="razorpay",
-            provider_reference=f"pay_{fake.uuid4()[:14]}",
-            related_entity_type="donation",
+            status=TransactionStatus.SUCCEEDED,
+            provider=PaymentProvider.RAZORPAY,
+            provider_reference=f"pay_{str(fake.uuid4())[:14]}",
+            related_entity_type=EntityType.DONATION,
             related_entity_id=donation.id,
             payer_id=members[3].id,
             created_by=admin_user_id,
@@ -344,9 +341,7 @@ async def seed_database():
         logger.info("Created Payment Transactions.")
 
         await session.commit()
-        logger.info(
-            "🎉 Database Seeding completely finished! All 12 modules populated."
-        )
+        logger.info("🎉 Database Seeding completely finished! All 12 modules populated.")
 
 
 if __name__ == "__main__":

@@ -13,14 +13,14 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.api.core.exceptions import NotFoundException, AppException
+from apps.api.core.exceptions import AppException, NotFoundException
 from apps.api.modules.committee.repository import CommitteeRepository
 from apps.api.modules.committee.schemas import (
+    AddCommitteeMemberSchema,
     CommitteeCreateSchema,
+    CommitteeMemberResponse,
     CommitteeResponse,
     CommitteeUpdateSchema,
-    AddCommitteeMemberSchema,
-    CommitteeMemberResponse,
 )
 from apps.api.modules.member.schemas import MemberListResponse
 
@@ -55,9 +55,9 @@ class CommitteeService:
         committee = await self._repo.get_by_id(committee_id)
         if not committee:
             raise NotFoundException("Committee", str(committee_id))
-            
+
         members_data = await self._repo.get_committee_members(committee_id)
-        
+
         members = []
         for cm in members_data:
             member_summary = MemberListResponse.model_validate(cm.member_obj)
@@ -71,10 +71,10 @@ class CommitteeService:
                     joined_date=cm.joined_date,
                     left_date=cm.left_date,
                     status=cm.status,
-                    member=member_summary
+                    member=member_summary,
                 )
             )
-            
+
         response = CommitteeResponse.model_validate(committee)
         response.members = members
         return response
@@ -131,14 +131,12 @@ class CommitteeService:
         )
         if not committee:
             raise NotFoundException("Committee", str(committee_id))
-            
+
         return await self.get_committee(committee_id)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_committee(
-        self, committee_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_committee(self, committee_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a committee."""
         success = await self._repo.soft_delete(committee_id, deleted_by)
         if not success:
@@ -167,15 +165,15 @@ class CommitteeService:
             joined_date=data.joined_date,
             left_date=data.left_date,
             status=data.status,
-            created_by=created_by
+            created_by=created_by,
         )
-        
+
         # Need the full member payload
         full_committee = await self.get_committee(committee_id)
         for member in full_committee.members:
             if member.id == cm.id:
                 return member
-                
+
         raise AppException("Failed to retrieve added committee member")
 
     async def remove_member(self, committee_id: UUID, member_id: UUID) -> dict:

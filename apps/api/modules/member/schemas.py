@@ -13,8 +13,8 @@ from pydantic import Field, field_validator
 
 from apps.api.core.base_schema import BaseSchema
 
-
 # ── Create ───────────────────────────────────────────────────────────────
+
 
 class MemberCreateSchema(BaseSchema):
     """POST /members – create a new member manually."""
@@ -60,6 +60,7 @@ class MemberCreateSchema(BaseSchema):
 
 
 # ── Update ───────────────────────────────────────────────────────────────
+
 
 class MemberUpdateSchema(BaseSchema):
     """PATCH /members/{id} – partial update."""
@@ -107,6 +108,7 @@ class MemberUpdateSchema(BaseSchema):
 
 
 # ── Response ─────────────────────────────────────────────────────────────
+
 
 class MemberResponse(BaseSchema):
     """Full member detail response."""
@@ -175,13 +177,16 @@ class MemberListResponse(BaseSchema):
 
 # ── Bulk Import ──────────────────────────────────────────────────────────
 
+
 class BulkImportError(BaseSchema):
     row: int
     error: str
     data: dict | None = None
 
+
 class BulkImportResultResponse(BaseSchema):
     """Result of a bulk import operation."""
+
     total_rows: int
     success_count: int
     error_count: int

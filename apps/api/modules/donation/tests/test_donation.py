@@ -7,12 +7,14 @@ Tests cover:
 
 from __future__ import annotations
 
-import pytest
 from datetime import date
 from decimal import Decimal
 from uuid import uuid4
 
+import pytest
+
 from apps.api.modules.donation.schemas import DonationCreateSchema
+
 
 class TestDonationSchemas:
     """Test Pydantic schema validation for Donation."""
@@ -23,7 +25,7 @@ class TestDonationSchemas:
             amount=Decimal("1500.50"),
             donation_date=date(2024, 1, 15),
             purpose="Temple Construction",
-            payment_mode="upi"
+            payment_mode="upi",
         )
         assert schema.amount == Decimal("1500.50")
         assert schema.purpose == "Temple Construction"
@@ -35,7 +37,7 @@ class TestDonationSchemas:
                 amount=Decimal("-500.00"),  # negative amount
                 donation_date=date(2024, 1, 15),
                 purpose="Charity",
-                payment_mode="cash"
+                payment_mode="cash",
             )
 
     def test_missing_donor_raises(self) -> None:
@@ -45,5 +47,5 @@ class TestDonationSchemas:
                 amount=Decimal("100.00"),
                 donation_date=date(2024, 1, 15),
                 purpose="Charity",
-                payment_mode="cash"
+                payment_mode="cash",
             )

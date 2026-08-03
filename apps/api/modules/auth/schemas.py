@@ -13,8 +13,8 @@ from pydantic import Field, field_validator
 
 from apps.api.core.base_schema import BaseSchema
 
-
 # ── OTP Request / Verify ─────────────────────────────────────────────────
+
 
 class OTPRequestSchema(BaseSchema):
     """POST /auth/otp/request"""
@@ -52,6 +52,7 @@ class OTPVerifySchema(BaseSchema):
 
 # ── Token Responses ──────────────────────────────────────────────────────
 
+
 class TokenResponse(BaseSchema):
     """Returned after successful OTP verification or token refresh."""
 
@@ -59,8 +60,8 @@ class TokenResponse(BaseSchema):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int  # seconds
-    user: "UserResponse"
-    tenant: "TenantBriefResponse | None" = None
+    user: UserResponse
+    tenant: TenantBriefResponse | None = None
 
 
 class RefreshTokenRequest(BaseSchema):
@@ -70,6 +71,7 @@ class RefreshTokenRequest(BaseSchema):
 
 
 # ── User Response ────────────────────────────────────────────────────────
+
 
 class UserResponse(BaseSchema):
     """User profile in auth responses."""
@@ -87,6 +89,7 @@ class UserResponse(BaseSchema):
 
 # ── Tenant Brief ─────────────────────────────────────────────────────────
 
+
 class TenantBriefResponse(BaseSchema):
     """Minimal tenant info returned with auth tokens."""
 
@@ -97,6 +100,7 @@ class TenantBriefResponse(BaseSchema):
 
 
 # ── Session / Device ─────────────────────────────────────────────────────
+
 
 class AuthMeResponse(BaseSchema):
     """User profile response."""
@@ -115,14 +119,17 @@ class AuthMeResponse(BaseSchema):
 
 # ── Roles ────────────────────────────────────────────────────────────────
 
+
 class AssignRoleSchema(BaseSchema):
     """Payload for assigning a role to a user in a tenant."""
+
     user_id: UUID
     role_id: UUID
 
 
 class RoleResponse(BaseSchema):
     """Role definition response."""
+
     id: UUID
     name: str
     display_name: str
@@ -132,6 +139,7 @@ class RoleResponse(BaseSchema):
 
 class UserTenantRoleResponse(BaseSchema):
     """Maps a user to a tenant and role."""
+
     id: UUID
     user_id: UUID
     tenant_id: UUID
@@ -170,6 +178,7 @@ class UserProfileResponse(BaseSchema):
 
 # ── OTP Response ─────────────────────────────────────────────────────────
 
+
 class OTPResponse(BaseSchema):
     """Response after OTP is sent."""
 
@@ -179,6 +188,7 @@ class OTPResponse(BaseSchema):
 
 
 # ── Social Login Scaffold ───────────────────────────────────────────────
+
 
 class GoogleLoginSchema(BaseSchema):
     """POST /auth/google"""

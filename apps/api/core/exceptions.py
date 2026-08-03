@@ -12,8 +12,8 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-
 # ── Base Exception ───────────────────────────────────────────────────────
+
 
 class AppException(Exception):
     """Base exception for all domain errors."""
@@ -33,6 +33,7 @@ class AppException(Exception):
 
 
 # ── Specific Exceptions ─────────────────────────────────────────────────
+
 
 class NotFoundException(AppException):
     def __init__(self, resource: str = "Resource", resource_id: str = "") -> None:
@@ -108,6 +109,7 @@ class TenantException(AppException):
 
 
 # ── Error Handlers ───────────────────────────────────────────────────────
+
 
 def register_exception_handlers(app: FastAPI) -> None:
     """Register global exception handlers on the FastAPI app."""

@@ -25,7 +25,6 @@ from apps.api.core.permissions import Permission, RequirePermissions
 from apps.api.modules.facility.schemas import (
     FacilityBookingCreateSchema,
     FacilityBookingResponse,
-    FacilityBookingUpdateSchema,
     FacilityCreateSchema,
     FacilityResponse,
     FacilityUpdateSchema,
@@ -36,6 +35,7 @@ router = APIRouter(prefix="/facilities", tags=["Facilities"])
 
 
 # ── Facilities ───────────────────────────────────────────────────────
+
 
 @router.post(
     "",
@@ -121,6 +121,7 @@ async def delete_facility(
 
 
 # ── Bookings ─────────────────────────────────────────────────────────
+
 
 @router.post(
     "/{facility_id}/book",

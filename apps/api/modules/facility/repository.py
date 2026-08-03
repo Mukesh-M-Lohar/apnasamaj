@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update, or_, and_
+from sqlalchemy import Select, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.modules.facility.models import BookingStatus, Facility, FacilityBooking
@@ -54,9 +54,13 @@ class FacilityRepository:
         limit: int = 20,
     ) -> tuple[list[Facility], int]:
         stmt = self._base_facility_query()
-        count_stmt = select(func.count()).select_from(Facility).where(
-            Facility.tenant_id == self.tenant_id,
-            Facility.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Facility)
+            .where(
+                Facility.tenant_id == self.tenant_id,
+                Facility.is_deleted == False,  # noqa: E712
+            )
         )
 
         total_result = await self._session.execute(count_stmt)
@@ -89,21 +93,18 @@ class FacilityRepository:
         return facility
 
     async def soft_delete_facility(self, facility_id: UUID, deleted_by: UUID | None = None) -> bool:
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = (
             update(Facility)
             .where(
                 Facility.id == facility_id,
                 Facility.tenant_id == self.tenant_id,
-                Facility.is_deleted == False  # noqa: E712
+                Facility.is_deleted == False,  # noqa: E712
             )
-            .values(
-                is_deleted=True, 
-                updated_by=deleted_by,
-                deleted_at=datetime.now(UTC)
-            )
+            .values(is_deleted=True, updated_by=deleted_by, deleted_at=datetime.now(UTC))
         )
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -122,13 +123,15 @@ class FacilityRepository:
             FacilityBooking.is_deleted == False,  # noqa: E712
             FacilityBooking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED]),
             FacilityBooking.start_time < end_time,
-            FacilityBooking.end_time > start_time
+            FacilityBooking.end_time > start_time,
         )
         result = await self._session.execute(stmt)
         collision = result.first()
         return collision is None
 
-    async def create_booking(self, facility_id: UUID, data: dict[str, Any], created_by: UUID | None = None) -> FacilityBooking:
+    async def create_booking(
+        self, facility_id: UUID, data: dict[str, Any], created_by: UUID | None = None
+    ) -> FacilityBooking:
         booking = FacilityBooking(
             tenant_id=self.tenant_id,
             facility_id=facility_id,
@@ -145,7 +148,7 @@ class FacilityRepository:
         stmt = select(FacilityBooking).where(
             FacilityBooking.id == booking_id,
             FacilityBooking.tenant_id == self.tenant_id,
-            FacilityBooking.is_deleted == False  # noqa: E712
+            FacilityBooking.is_deleted == False,  # noqa: E712
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
@@ -169,11 +172,15 @@ class FacilityRepository:
         return booking
 
     async def get_bookings_for_facility(self, facility_id: UUID) -> list[FacilityBooking]:
-        stmt = select(FacilityBooking).where(
-            FacilityBooking.facility_id == facility_id,
-            FacilityBooking.tenant_id == self.tenant_id,
-            FacilityBooking.is_deleted == False  # noqa: E712
-        ).order_by(FacilityBooking.start_time.asc())
-        
+        stmt = (
+            select(FacilityBooking)
+            .where(
+                FacilityBooking.facility_id == facility_id,
+                FacilityBooking.tenant_id == self.tenant_id,
+                FacilityBooking.is_deleted == False,  # noqa: E712
+            )
+            .order_by(FacilityBooking.start_time.asc())
+        )
+
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

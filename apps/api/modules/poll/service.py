@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.exceptions import NotFoundException
 from apps.api.modules.poll.repository import PollRepository
@@ -77,12 +77,7 @@ class PollService:
             },
         }
 
-    async def cast_vote(
-        self, 
-        poll_id: UUID, 
-        data: PollVoteSchema, 
-        member_id: UUID
-    ) -> dict:
+    async def cast_vote(self, poll_id: UUID, data: PollVoteSchema, member_id: UUID) -> dict:
         """Securely cast a vote for a poll option."""
         poll = await self._repo.get_by_id(poll_id)
         if not poll or not poll.is_active:
@@ -92,29 +87,19 @@ class PollService:
         if poll.expires_at < datetime.now(UTC):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This poll has expired and is no longer accepting votes."
+                detail="This poll has expired and is no longer accepting votes.",
             )
 
         # Ensure the option belongs to this poll
         valid_options = {str(opt.id) for opt in poll.options}
         if str(data.option_id) not in valid_options:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid option for this poll."
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid option for this poll.")
 
         # Attempt to cast vote (Repository handles the unique constraint)
-        success = await self._repo.cast_vote(
-            poll_id=poll_id, 
-            option_id=data.option_id, 
-            member_id=member_id
-        )
-        
+        success = await self._repo.cast_vote(poll_id=poll_id, option_id=data.option_id, member_id=member_id)
+
         if not success:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="You have already voted in this poll."
-            )
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You have already voted in this poll.")
 
         logger.info("Vote cast successfully by member %s on poll %s", member_id, poll_id)
         return {"message": "Vote cast successfully"}

@@ -14,8 +14,8 @@ from pydantic import Field
 
 from apps.api.core.base_schema import BaseSchema
 
-
 # ── Volunteer Profile ────────────────────────────────────────────────────
+
 
 class VolunteerCreateSchema(BaseSchema):
     member_id: UUID
@@ -39,17 +39,18 @@ class VolunteerResponse(BaseSchema):
     skills: list[str] | None = Field(default_factory=list)
     availability: str | None = None
     status: str
-    
+
     total_hours: Decimal
     total_events: int
     rating: Decimal | None = None
     notes: str | None = None
-    
+
     created_at: datetime
     updated_at: datetime
 
 
 # ── Volunteer Assignments ────────────────────────────────────────────────
+
 
 class VolunteerAssignmentCreateSchema(BaseSchema):
     event_id: UUID
@@ -71,16 +72,16 @@ class VolunteerAssignmentResponse(BaseSchema):
     id: UUID
     volunteer_id: UUID
     event_id: UUID
-    
+
     role: str | None = None
     hours: Decimal | None = None
     attended: bool
-    
+
     check_in_at: datetime | None = None
     check_out_at: datetime | None = None
-    
+
     feedback: str | None = None
     certificate_url: str | None = None
-    
+
     created_at: datetime
     updated_at: datetime

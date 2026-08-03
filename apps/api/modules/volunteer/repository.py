@@ -11,7 +11,6 @@ from uuid import UUID
 
 from sqlalchemy import Select, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import JSONB
 
 from apps.api.modules.volunteer.models import Volunteer, VolunteerAssignment
 
@@ -61,19 +60,23 @@ class VolunteerRepository:
         sort_order: str = "desc",
     ) -> tuple[list[Volunteer], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Volunteer).where(
-            Volunteer.tenant_id == self.tenant_id,
-            Volunteer.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Volunteer)
+            .where(
+                Volunteer.tenant_id == self.tenant_id,
+                Volunteer.is_deleted == False,  # noqa: E712
+            )
         )
 
         if status:
             stmt = stmt.where(Volunteer.status == status)
             count_stmt = count_stmt.where(Volunteer.status == status)
-            
+
         if availability:
             stmt = stmt.where(Volunteer.availability == availability)
             count_stmt = count_stmt.where(Volunteer.availability == availability)
-            
+
         if skill:
             # Query JSONB array for the specific skill using Postgres ? operator wrapper
             # In SQLAlchemy with asyncpg, we use .op("?"). Since JSONB isn't strictly strongly-typed here without cast, we use contains.
@@ -121,13 +124,14 @@ class VolunteerRepository:
             .where(
                 Volunteer.id == volunteer_id,
                 Volunteer.tenant_id == self.tenant_id,
-                Volunteer.is_deleted == False  # noqa: E712
+                Volunteer.is_deleted == False,  # noqa: E712
             )
             .values(is_deleted=True, updated_by=deleted_by)
         )
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = stmt.values(deleted_at=datetime.now(UTC))
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -151,30 +155,31 @@ class VolunteerRepository:
         await self._session.flush()
         await self._session.refresh(assignment)
         return assignment
-        
+
     async def get_assignment(self, assignment_id: UUID) -> VolunteerAssignment | None:
         stmt = select(VolunteerAssignment).where(
             VolunteerAssignment.id == assignment_id,
             VolunteerAssignment.tenant_id == self.tenant_id,
-            VolunteerAssignment.is_deleted == False  # noqa: E712
+            VolunteerAssignment.is_deleted == False,  # noqa: E712
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
-        
+
     async def get_assignments_for_volunteer(self, volunteer_id: UUID) -> list[VolunteerAssignment]:
-        stmt = select(VolunteerAssignment).where(
-            VolunteerAssignment.volunteer_id == volunteer_id,
-            VolunteerAssignment.tenant_id == self.tenant_id,
-            VolunteerAssignment.is_deleted == False  # noqa: E712
-        ).order_by(VolunteerAssignment.created_at.desc())
+        stmt = (
+            select(VolunteerAssignment)
+            .where(
+                VolunteerAssignment.volunteer_id == volunteer_id,
+                VolunteerAssignment.tenant_id == self.tenant_id,
+                VolunteerAssignment.is_deleted == False,  # noqa: E712
+            )
+            .order_by(VolunteerAssignment.created_at.desc())
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
     async def update_assignment(
-        self, 
-        assignment_id: UUID, 
-        data: dict[str, Any], 
-        updated_by: UUID | None = None
+        self, assignment_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
     ) -> VolunteerAssignment | None:
         assignment = await self.get_assignment(assignment_id)
         if not assignment:
@@ -195,23 +200,20 @@ class VolunteerRepository:
         """Recalculate total hours and total events attended."""
         stmt = select(
             func.sum(VolunteerAssignment.hours).label("total_hours"),
-            func.count(VolunteerAssignment.id).label("total_events")
+            func.count(VolunteerAssignment.id).label("total_events"),
         ).where(
             VolunteerAssignment.volunteer_id == volunteer_id,
             VolunteerAssignment.attended == True,  # noqa: E712
-            VolunteerAssignment.is_deleted == False  # noqa: E712
+            VolunteerAssignment.is_deleted == False,  # noqa: E712
         )
         result = await self._session.execute(stmt)
         row = result.first()
-        
+
         hours = row.total_hours or 0
         events_count = row.total_events or 0
-        
-        update_stmt = update(Volunteer).where(
-            Volunteer.id == volunteer_id
-        ).values(
-            total_hours=hours,
-            total_events=events_count
+
+        update_stmt = (
+            update(Volunteer).where(Volunteer.id == volunteer_id).values(total_hours=hours, total_events=events_count)
         )
         await self._session.execute(update_stmt)
         await self._session.flush()

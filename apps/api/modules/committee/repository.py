@@ -9,9 +9,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update, delete
+from sqlalchemy import Select, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from apps.api.modules.committee.models import Committee, CommitteeMember
 from apps.api.modules.member.models import Member
@@ -61,9 +60,13 @@ class CommitteeRepository:
         sort_order: str = "asc",
     ) -> tuple[list[Committee], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Committee).where(
-            Committee.tenant_id == self.tenant_id,
-            Committee.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Committee)
+            .where(
+                Committee.tenant_id == self.tenant_id,
+                Committee.is_deleted == False,  # noqa: E712
+            )
         )
 
         if status:
@@ -115,13 +118,14 @@ class CommitteeRepository:
             .where(
                 Committee.id == committee_id,
                 Committee.tenant_id == self.tenant_id,
-                Committee.is_deleted == False  # noqa: E712
+                Committee.is_deleted == False,  # noqa: E712
             )
             .values(is_deleted=True, updated_by=deleted_by)
         )
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = stmt.values(deleted_at=datetime.now(UTC))
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -139,12 +143,12 @@ class CommitteeRepository:
             )
         )
         result = await self._session.execute(stmt)
-        
+
         members_linked = []
         for cm, m in result:
             cm.member_obj = m
             members_linked.append(cm)
-            
+
         return members_linked
 
     async def add_member(

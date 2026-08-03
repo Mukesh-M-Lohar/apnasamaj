@@ -38,6 +38,7 @@ router = APIRouter(prefix="/events", tags=["Events"])
 
 # ── Create ───────────────────────────────────────────────────────────────
 
+
 @router.post(
     "",
     response_model=ApiResponse[EventResponse],
@@ -56,6 +57,7 @@ async def create_event(
 
 
 # ── Read ─────────────────────────────────────────────────────────────────
+
 
 @router.get(
     "",
@@ -105,6 +107,7 @@ async def get_event(
 
 # ── Update ───────────────────────────────────────────────────────────────
 
+
 @router.patch(
     "/{event_id}",
     response_model=ApiResponse[EventResponse],
@@ -125,6 +128,7 @@ async def update_event(
 
 # ── Delete ───────────────────────────────────────────────────────────────
 
+
 @router.delete(
     "/{event_id}",
     response_model=ApiResponse[dict],
@@ -143,6 +147,7 @@ async def delete_event(
 
 
 # ── Registrations & Check-In ─────────────────────────────────────────────
+
 
 @router.get(
     "/{event_id}/attendees",

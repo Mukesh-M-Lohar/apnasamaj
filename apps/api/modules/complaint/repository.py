@@ -58,19 +58,23 @@ class ComplaintRepository:
         committee_id: UUID | None = None,
     ) -> tuple[list[Complaint], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Complaint).where(
-            Complaint.tenant_id == self.tenant_id,
-            Complaint.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Complaint)
+            .where(
+                Complaint.tenant_id == self.tenant_id,
+                Complaint.is_deleted == False,  # noqa: E712
+            )
         )
 
         if status:
             stmt = stmt.where(Complaint.status == status)
             count_stmt = count_stmt.where(Complaint.status == status)
-            
+
         if reporter_id:
             stmt = stmt.where(Complaint.reporter_id == reporter_id)
             count_stmt = count_stmt.where(Complaint.reporter_id == reporter_id)
-            
+
         if committee_id:
             stmt = stmt.where(Complaint.assigned_committee_id == committee_id)
             count_stmt = count_stmt.where(Complaint.assigned_committee_id == committee_id)
@@ -109,20 +113,17 @@ class ComplaintRepository:
     # ── Delete ───────────────────────────────────────────────────────────
 
     async def soft_delete(self, complaint_id: UUID, deleted_by: UUID | None = None) -> bool:
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = (
             update(Complaint)
             .where(
                 Complaint.id == complaint_id,
                 Complaint.tenant_id == self.tenant_id,
-                Complaint.is_deleted == False  # noqa: E712
+                Complaint.is_deleted == False,  # noqa: E712
             )
-            .values(
-                is_deleted=True, 
-                updated_by=deleted_by,
-                deleted_at=datetime.now(UTC)
-            )
+            .values(is_deleted=True, updated_by=deleted_by, deleted_at=datetime.now(UTC))
         )
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0

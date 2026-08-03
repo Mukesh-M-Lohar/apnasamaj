@@ -6,9 +6,9 @@ Database operations for events and attendee registrations.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
-from datetime import datetime, UTC
 
 from sqlalchemy import Select, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,19 +61,23 @@ class EventRepository:
         sort_order: str = "asc",
     ) -> tuple[list[Event], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Event).where(
-            Event.tenant_id == self.tenant_id,
-            Event.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Event)
+            .where(
+                Event.tenant_id == self.tenant_id,
+                Event.is_deleted == False,  # noqa: E712
+            )
         )
 
         if status:
             stmt = stmt.where(Event.status == status)
             count_stmt = count_stmt.where(Event.status == status)
-            
+
         if event_type:
             stmt = stmt.where(Event.event_type == event_type)
             count_stmt = count_stmt.where(Event.event_type == event_type)
-            
+
         if search:
             search_filter = f"%{search}%"
             stmt = stmt.where(Event.title.ilike(search_filter))
@@ -93,9 +97,7 @@ class EventRepository:
 
     # ── Update ───────────────────────────────────────────────────────────
 
-    async def update(
-        self, event_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
-    ) -> Event | None:
+    async def update(self, event_id: UUID, data: dict[str, Any], updated_by: UUID | None = None) -> Event | None:
         event = await self.get_by_id(event_id)
         if not event:
             return None
@@ -116,14 +118,10 @@ class EventRepository:
     async def soft_delete(self, event_id: UUID, deleted_by: UUID | None = None) -> bool:
         stmt = (
             update(Event)
-            .where(
-                Event.id == event_id,
-                Event.tenant_id == self.tenant_id,
-                Event.is_deleted == False  # noqa: E712
-            )
+            .where(Event.id == event_id, Event.tenant_id == self.tenant_id, Event.is_deleted == False)  # noqa: E712
             .values(is_deleted=True, updated_by=deleted_by, deleted_at=datetime.now(UTC))
         )
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -134,16 +132,20 @@ class EventRepository:
             EventRegistration.event_id == event_id,
             EventRegistration.member_id == member_id,
             EventRegistration.tenant_id == self.tenant_id,
-            EventRegistration.is_deleted == False  # noqa: E712
+            EventRegistration.is_deleted == False,  # noqa: E712
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
-        
+
     async def get_registration_count(self, event_id: UUID) -> int:
-        stmt = select(func.count()).select_from(EventRegistration).where(
-            EventRegistration.event_id == event_id,
-            EventRegistration.status == "registered",
-            EventRegistration.is_deleted == False  # noqa: E712
+        stmt = (
+            select(func.count())
+            .select_from(EventRegistration)
+            .where(
+                EventRegistration.event_id == event_id,
+                EventRegistration.status == "registered",
+                EventRegistration.is_deleted == False,  # noqa: E712
+            )
         )
         result = await self._session.execute(stmt)
         return result.scalar_one()
@@ -175,27 +177,23 @@ class EventRepository:
                 created_by=created_by,
             )
             self._session.add(reg)
-            
+
         await self._session.flush()
         await self._session.refresh(reg)
         return reg
 
     async def mark_attendance(
-        self, 
-        event_id: UUID, 
-        member_id: UUID, 
-        method: str = "manual",
-        updated_by: UUID | None = None
+        self, event_id: UUID, member_id: UUID, method: str = "manual", updated_by: UUID | None = None
     ) -> EventRegistration | None:
         reg = await self.get_registration(event_id, member_id)
         if not reg:
             return None
-            
+
         reg.status = "attended"
         reg.checked_in_at = datetime.now(UTC)
         reg.check_in_method = method
         reg.updated_by = updated_by
-        
+
         await self._session.flush()
         await self._session.refresh(reg)
         return reg
@@ -204,7 +202,7 @@ class EventRepository:
         stmt = select(EventRegistration).where(
             EventRegistration.event_id == event_id,
             EventRegistration.tenant_id == self.tenant_id,
-            EventRegistration.is_deleted == False  # noqa: E712
+            EventRegistration.is_deleted == False,  # noqa: E712
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

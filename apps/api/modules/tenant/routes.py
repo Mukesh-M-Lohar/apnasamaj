@@ -27,8 +27,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.api.core.base_schema import ApiResponse, PaginatedResponse
 from apps.api.core.database import get_db
 from apps.api.core.dependencies import (
-    get_current_tenant_id,
-    get_current_user,
     get_current_user_id,
     get_optional_user,
 )

@@ -36,6 +36,7 @@ router = APIRouter(prefix="/committees", tags=["Committees"])
 
 # ── Create ───────────────────────────────────────────────────────────────
 
+
 @router.post(
     "",
     response_model=ApiResponse[CommitteeResponse],
@@ -54,6 +55,7 @@ async def create_committee(
 
 
 # ── Read ─────────────────────────────────────────────────────────────────
+
 
 @router.get(
     "",
@@ -101,6 +103,7 @@ async def get_committee(
 
 # ── Update ───────────────────────────────────────────────────────────────
 
+
 @router.patch(
     "/{committee_id}",
     response_model=ApiResponse[CommitteeResponse],
@@ -121,6 +124,7 @@ async def update_committee(
 
 # ── Delete ───────────────────────────────────────────────────────────────
 
+
 @router.delete(
     "/{committee_id}",
     response_model=ApiResponse[dict],
@@ -139,6 +143,7 @@ async def delete_committee(
 
 
 # ── Members (Junction) ───────────────────────────────────────────────────
+
 
 @router.post(
     "/{committee_id}/members",

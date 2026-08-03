@@ -35,6 +35,7 @@ router = APIRouter(prefix="/donations", tags=["Donations"])
 
 # ── Rollups / Summary ────────────────────────────────────────────────────
 
+
 @router.get(
     "/summary",
     response_model=ApiResponse[DonationSummaryResponse],
@@ -54,6 +55,7 @@ async def get_donation_summary(
 
 # ── Create ───────────────────────────────────────────────────────────────
 
+
 @router.post(
     "",
     response_model=ApiResponse[DonationResponse],
@@ -72,6 +74,7 @@ async def create_donation(
 
 
 # ── Read ─────────────────────────────────────────────────────────────────
+
 
 @router.get(
     "",
@@ -125,6 +128,7 @@ async def get_donation(
 
 # ── Update ───────────────────────────────────────────────────────────────
 
+
 @router.patch(
     "/{donation_id}",
     response_model=ApiResponse[DonationResponse],
@@ -144,6 +148,7 @@ async def update_donation(
 
 
 # ── Delete ───────────────────────────────────────────────────────────────
+
 
 @router.delete(
     "/{donation_id}",

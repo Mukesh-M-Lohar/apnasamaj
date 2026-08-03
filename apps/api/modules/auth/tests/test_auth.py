@@ -11,21 +11,19 @@ Tests cover:
 
 from __future__ import annotations
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
 from uuid import uuid4
-from datetime import UTC, datetime, timedelta
 
-from apps.api.core.security import generate_otp, create_access_token, create_refresh_token, decode_token
+import pytest
+
+from apps.api.core.security import create_access_token, create_refresh_token, decode_token, generate_otp
+from apps.api.modules.auth.repository import AuthRepository
 from apps.api.modules.auth.schemas import (
     OTPRequestSchema,
-    OTPVerifySchema,
     OTPResponse,
-    TokenResponse,
+    OTPVerifySchema,
     UserResponse,
 )
-from apps.api.modules.auth.repository import AuthRepository
-
 
 # ── Security Utility Tests ───────────────────────────────────────────────
 

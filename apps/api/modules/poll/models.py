@@ -10,14 +10,14 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Text, DateTime, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.api.core.base_model import BaseModel
 
 if TYPE_CHECKING:
-    from apps.api.modules.member.models import Member
     from apps.api.modules.committee.models import Committee
+    from apps.api.modules.member.models import Member
 
 
 class Poll(BaseModel):
@@ -28,20 +28,16 @@ class Poll(BaseModel):
     question: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
 
     # Optional: restricts poll to a specific committee
-    target_committee_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("committees.id"), nullable=True
-    )
+    target_committee_id: Mapped[UUID | None] = mapped_column(ForeignKey("committees.id"), nullable=True)
 
     # Relationships
-    options: Mapped[list["PollOption"]] = relationship(back_populates="poll")
-    votes: Mapped[list["PollVote"]] = relationship(back_populates="poll")
-    target_committee: Mapped["Committee"] = relationship()
+    options: Mapped[list[PollOption]] = relationship(back_populates="poll")
+    votes: Mapped[list[PollVote]] = relationship(back_populates="poll")
+    target_committee: Mapped[Committee] = relationship()
 
 
 class PollOption(BaseModel):
@@ -56,7 +52,7 @@ class PollOption(BaseModel):
     vote_count: Mapped[int] = mapped_column(default=0)
 
     poll: Mapped[Poll] = relationship(back_populates="options")
-    votes: Mapped[list["PollVote"]] = relationship(back_populates="option")
+    votes: Mapped[list[PollVote]] = relationship(back_populates="option")
 
 
 class PollVote(BaseModel):
@@ -70,11 +66,9 @@ class PollVote(BaseModel):
     )
 
     poll_id: Mapped[UUID] = mapped_column(ForeignKey("polls.id"), nullable=False)
-    option_id: Mapped[UUID] = mapped_column(
-        ForeignKey("poll_options.id"), nullable=False
-    )
+    option_id: Mapped[UUID] = mapped_column(ForeignKey("poll_options.id"), nullable=False)
     member_id: Mapped[UUID] = mapped_column(ForeignKey("members.id"), nullable=False)
 
     poll: Mapped[Poll] = relationship(back_populates="votes")
     option: Mapped[PollOption] = relationship(back_populates="votes")
-    member: Mapped["Member"] = relationship()
+    member: Mapped[Member] = relationship()

@@ -96,7 +96,7 @@ export default function Dashboard() {
           </p>
         </div>
       </div>
-      
+
       <div className="card" style={{ marginTop: "2rem" }}>
         <h2>Recent Activity</h2>
         <p>Your community's pulse for the last 48 hours.</p>

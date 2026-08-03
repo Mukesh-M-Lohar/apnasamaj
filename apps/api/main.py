@@ -19,20 +19,19 @@ from apps.api.core.config import get_settings
 from apps.api.core.exceptions import register_exception_handlers
 from apps.api.core.middleware import register_middleware
 from apps.api.modules.auth.routes import router as auth_router
-from apps.api.modules.tenant.routes import router as community_router
+from apps.api.modules.committee.routes import router as committee_router
+from apps.api.modules.complaint.routes import router as complaint_router
+from apps.api.modules.donation.routes import router as donation_router
+from apps.api.modules.event.routes import router as event_router
+from apps.api.modules.facility.routes import router as facility_router
 
 # from apps.api.modules.member.routes import router as member_router
 from apps.api.modules.family.routes import router as family_router
-from apps.api.modules.committee.routes import router as committee_router
-from apps.api.modules.donation.routes import router as donation_router
-from apps.api.modules.event.routes import router as event_router
-from apps.api.modules.volunteer.routes import router as volunteer_router
-from apps.api.modules.complaint.routes import router as complaint_router
-from apps.api.modules.facility.routes import router as facility_router
 from apps.api.modules.notification.routes import router as notification_router
-from apps.api.modules.poll.routes import router as poll_router
 from apps.api.modules.payment.routes import router as payment_router
-
+from apps.api.modules.poll.routes import router as poll_router
+from apps.api.modules.tenant.routes import router as community_router
+from apps.api.modules.volunteer.routes import router as volunteer_router
 
 settings = get_settings()
 

@@ -17,7 +17,7 @@ export default function ProfileScreen() {
     // Attempt to fetch volunteer stats if they are a volunteer
     try {
       setLoading(true);
-      // Since we don't have the volunteer UUID directly on the generic user payload, 
+      // Since we don't have the volunteer UUID directly on the generic user payload,
       // we might fetch their member profile or volunteer profile via search by mobile or member_id.
       // For this polished UI, we will simulate the UI structure if the API isn't directly 1:1 yet.
       // A full production app would have a `/members/me` endpoint.
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <Text style={styles.version}>ApnaSamaj v1.0.0</Text>
     </ScrollView>
   );

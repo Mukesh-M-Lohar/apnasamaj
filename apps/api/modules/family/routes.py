@@ -38,6 +38,7 @@ router = APIRouter(prefix="/families", tags=["Families"])
 
 # ── Create ───────────────────────────────────────────────────────────────
 
+
 @router.post(
     "",
     response_model=ApiResponse[FamilyResponse],
@@ -56,6 +57,7 @@ async def create_family(
 
 
 # ── Read ─────────────────────────────────────────────────────────────────
+
 
 @router.get(
     "",
@@ -118,6 +120,7 @@ async def get_family_tree(
 
 # ── Update ───────────────────────────────────────────────────────────────
 
+
 @router.patch(
     "/{family_id}",
     response_model=ApiResponse[FamilyResponse],
@@ -138,6 +141,7 @@ async def update_family(
 
 # ── Delete ───────────────────────────────────────────────────────────────
 
+
 @router.delete(
     "/{family_id}",
     response_model=ApiResponse[dict],
@@ -156,6 +160,7 @@ async def delete_family(
 
 
 # ── Members (Junction) ───────────────────────────────────────────────────
+
 
 @router.post(
     "/{family_id}/members",

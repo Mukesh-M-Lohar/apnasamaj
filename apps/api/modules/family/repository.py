@@ -9,9 +9,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update, delete
+from sqlalchemy import Select, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from apps.api.modules.family.models import Family, FamilyMember
 from apps.api.modules.member.models import Member
@@ -60,9 +59,13 @@ class FamilyRepository:
         sort_order: str = "asc",
     ) -> tuple[list[Family], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Family).where(
-            Family.tenant_id == self.tenant_id,
-            Family.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Family)
+            .where(
+                Family.tenant_id == self.tenant_id,
+                Family.is_deleted == False,  # noqa: E712
+            )
         )
 
         if search:
@@ -84,9 +87,7 @@ class FamilyRepository:
 
     # ── Update ───────────────────────────────────────────────────────────
 
-    async def update(
-        self, family_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
-    ) -> Family | None:
+    async def update(self, family_id: UUID, data: dict[str, Any], updated_by: UUID | None = None) -> Family | None:
         family = await self.get_by_id(family_id)
         if not family:
             return None
@@ -108,15 +109,14 @@ class FamilyRepository:
         stmt = (
             update(Family)
             .where(
-                Family.id == family_id,
-                Family.tenant_id == self.tenant_id,
-                Family.is_deleted == False  # noqa: E712
+                Family.id == family_id, Family.tenant_id == self.tenant_id, Family.is_deleted == False  # noqa: E712
             )
             .values(is_deleted=True, updated_by=deleted_by)
         )
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         stmt = stmt.values(deleted_at=datetime.now(UTC))
-        
+
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
@@ -138,13 +138,13 @@ class FamilyRepository:
             )
         )
         result = await self._session.execute(stmt)
-        
+
         # We'll attach the Member object directly to the FamilyMember for easy access
         members_linked = []
         for fm, m in result:
             fm.member_obj = m
             members_linked.append(fm)
-            
+
         return members_linked
 
     async def add_member(
@@ -167,12 +167,10 @@ class FamilyRepository:
             created_by=created_by,
         )
         self._session.add(fm)
-        
+
         # Also update the member's family_id
-        await self._session.execute(
-            update(Member).where(Member.id == member_id).values(family_id=family_id)
-        )
-        
+        await self._session.execute(update(Member).where(Member.id == member_id).values(family_id=family_id))
+
         await self._session.flush()
         await self._session.refresh(fm)
         return fm
@@ -184,11 +182,9 @@ class FamilyRepository:
             FamilyMember.member_id == member_id,
         )
         result = await self._session.execute(stmt)
-        
+
         # Unlink family_id on the member
         if result.rowcount > 0:
-            await self._session.execute(
-                update(Member).where(Member.id == member_id).values(family_id=None)
-            )
-            
+            await self._session.execute(update(Member).where(Member.id == member_id).values(family_id=None))
+
         return result.rowcount > 0

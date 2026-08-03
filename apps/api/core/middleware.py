@@ -25,6 +25,7 @@ settings = get_settings()
 
 # ── Request ID ───────────────────────────────────────────────────────────
 
+
 class RequestIDMiddleware(BaseHTTPMiddleware):
     """Attach a unique request ID to every request/response for tracing."""
 
@@ -37,6 +38,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 
 # ── Secure Headers ───────────────────────────────────────────────────────
+
 
 class SecureHeadersMiddleware(BaseHTTPMiddleware):
     """Add standard security headers to all responses."""
@@ -53,6 +55,7 @@ class SecureHeadersMiddleware(BaseHTTPMiddleware):
 
 
 # ── Rate Limiting (in-memory – replace with Redis in production) ─────────
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
@@ -90,6 +93,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 # ── Tenant Context ───────────────────────────────────────────────────────
 
+
 class TenantContextMiddleware(BaseHTTPMiddleware):
     """
     Extract tenant context from the JWT payload (set by auth dependency)
@@ -108,6 +112,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
 
 
 # ── Register All Middleware ──────────────────────────────────────────────
+
 
 def register_middleware(app: FastAPI) -> None:
     """Register all middleware on the FastAPI app instance."""

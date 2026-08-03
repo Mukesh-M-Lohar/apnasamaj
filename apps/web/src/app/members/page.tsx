@@ -32,7 +32,7 @@ export default function MembersPage() {
     }, 800);
   }, []);
 
-  const filteredMembers = members.filter((m) => 
+  const filteredMembers = members.filter((m) =>
     `${m.first_name} ${m.last_name}`.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -52,10 +52,10 @@ export default function MembersPage() {
           <div className="input-group" style={{ flex: 1, margin: 0 }}>
             <div style={{ position: "relative" }}>
               <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }} />
-              <input 
-                type="text" 
-                className="input" 
-                placeholder="Search by name or phone..." 
+              <input
+                type="text"
+                className="input"
+                placeholder="Search by name or phone..."
                 style={{ paddingLeft: "2.5rem" }}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

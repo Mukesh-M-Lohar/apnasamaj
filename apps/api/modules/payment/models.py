@@ -10,9 +10,9 @@ import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Numeric
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.api.core.base_model import BaseModel
 
@@ -50,9 +50,7 @@ class Transaction(BaseModel):
     provider: Mapped[PaymentProvider] = mapped_column(default=PaymentProvider.RAZORPAY)
 
     # Stripe PaymentIntent ID or Razorpay Order ID
-    provider_reference: Mapped[str | None] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
+    provider_reference: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     # What is this payment for?
     related_entity_type: Mapped[EntityType] = mapped_column(nullable=False)
@@ -65,4 +63,4 @@ class Transaction(BaseModel):
     provider_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
-    payer: Mapped["Member"] = relationship()
+    payer: Mapped[Member] = relationship()

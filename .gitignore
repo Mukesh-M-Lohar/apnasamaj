@@ -10,6 +10,7 @@ build/
 *.egg
 .venv/
 venv/
+venv312/
 env/
 
 # ── IDE ─────────────────────────────────────────────────────
@@ -55,3 +56,4 @@ logs/
 
 *screenshot*.py
 *venv*
+playwright-report/\ntest-results/

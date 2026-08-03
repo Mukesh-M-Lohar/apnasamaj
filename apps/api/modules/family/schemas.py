@@ -14,8 +14,8 @@ from pydantic import Field
 from apps.api.core.base_schema import BaseSchema
 from apps.api.modules.member.schemas import MemberResponse
 
-
 # ── Create / Update Family ───────────────────────────────────────────────
+
 
 class FamilyCreateSchema(BaseSchema):
     """POST /families – create a new family unit."""
@@ -51,18 +51,18 @@ class FamilyUpdateSchema(BaseSchema):
 
 # ── Family Members ───────────────────────────────────────────────────────
 
+
 class AddFamilyMemberSchema(BaseSchema):
     """POST /families/{id}/members – link a member to the family."""
 
     member_id: UUID
     related_to_member_id: UUID | None = Field(
-        default=None,
-        description="ID of the member they are related to (usually the head)."
+        default=None, description="ID of the member they are related to (usually the head)."
     )
     relationship_type: str = Field(..., max_length=50, description="spouse, child, parent, sibling, etc.")
     generation: int | None = Field(
         default=None,
-        description="Generation relative to head (0=head, 1=child, -1=parent). Computed automatically if not provided."
+        description="Generation relative to head (0=head, 1=child, -1=parent). Computed automatically if not provided.",
     )
 
 
@@ -85,7 +85,7 @@ class FamilyResponse(BaseSchema):
     name: str
     family_code: str | None = None
     family_head_id: UUID | None = None
-    
+
     address_line1: str | None = None
     address_line2: str | None = None
     city: str | None = None
@@ -96,11 +96,12 @@ class FamilyResponse(BaseSchema):
 
     created_at: datetime
     updated_at: datetime
-    
+
     members: list[FamilyMemberResponse] = Field(default_factory=list)
 
 
 # ── Structured Tree ──────────────────────────────────────────────────────
+
 
 class FamilyTreeNode(BaseSchema):
     """A node in the hierarchical family tree."""
@@ -108,7 +109,8 @@ class FamilyTreeNode(BaseSchema):
     member: MemberResponse
     relationship_type: str
     generation: int | None = None
-    children: list["FamilyTreeNode"] = Field(default_factory=list)
+    children: list[FamilyTreeNode] = Field(default_factory=list)
+
 
 class FamilyTreeResponse(BaseSchema):
     """Hierarchical view of the family starting from the head."""

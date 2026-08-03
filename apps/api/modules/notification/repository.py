@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.modules.notification.models import Notification
@@ -51,9 +51,13 @@ class NotificationRepository:
         limit: int = 20,
     ) -> tuple[list[Notification], int]:
         stmt = self._base_query()
-        count_stmt = select(func.count()).select_from(Notification).where(
-            Notification.tenant_id == self.tenant_id,
-            Notification.is_deleted == False,  # noqa: E712
+        count_stmt = (
+            select(func.count())
+            .select_from(Notification)
+            .where(
+                Notification.tenant_id == self.tenant_id,
+                Notification.is_deleted == False,  # noqa: E712
+            )
         )
 
         total_result = await self._session.execute(count_stmt)

@@ -22,7 +22,7 @@ export default function LoginScreen() {
         mobile: mobile,
         tenant_id: "00000000-0000-0000-0000-000000000000", // Will be overridden or ignored if backend allows global search
       };
-      
+
       await apiClient.post('/auth/send-otp', payload);
       router.push({ pathname: '/(auth)/verify', params: { mobile } });
     } catch (error: any) {
@@ -49,8 +49,8 @@ export default function LoginScreen() {
         />
       </View>
 
-      <TouchableOpacity 
-        style={[styles.button, loading && styles.buttonDisabled]} 
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleSendOTP}
         disabled={loading}
       >

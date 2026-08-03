@@ -16,8 +16,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from apps.api.core.base_model import BaseModel
 
 if TYPE_CHECKING:
-    from apps.api.modules.member.models import Member
     from apps.api.modules.committee.models import Committee
+    from apps.api.modules.member.models import Member
 
 
 class ComplaintStatus(str, enum.Enum):
@@ -46,21 +46,17 @@ class Complaint(BaseModel):
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
     status: Mapped[ComplaintStatus] = mapped_column(default=ComplaintStatus.OPEN)
-    priority: Mapped[ComplaintPriority] = mapped_column(
-        default=ComplaintPriority.MEDIUM
-    )
+    priority: Mapped[ComplaintPriority] = mapped_column(default=ComplaintPriority.MEDIUM)
 
     # Who raised it
     reporter_id: Mapped[UUID] = mapped_column(ForeignKey("members.id"), nullable=False)
 
     # Which committee is handling it (optional)
-    assigned_committee_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("committees.id"), nullable=True
-    )
+    assigned_committee_id: Mapped[UUID | None] = mapped_column(ForeignKey("committees.id"), nullable=True)
 
     # Resolution notes
     resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
-    reporter: Mapped["Member"] = relationship()
-    assigned_committee: Mapped["Committee"] = relationship()
+    reporter: Mapped[Member] = relationship()
+    assigned_committee: Mapped[Committee] = relationship()

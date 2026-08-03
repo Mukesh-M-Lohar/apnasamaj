@@ -20,18 +20,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.base_schema import ApiResponse
 from apps.api.core.database import get_db
-from apps.api.core.dependencies import get_current_user, get_current_user_id
+from apps.api.core.dependencies import get_current_tenant_id, get_current_user, get_current_user_id
 from apps.api.core.exceptions import AppException
 from apps.api.modules.auth.schemas import (
     AppleLoginSchema,
+    AssignRoleSchema,
     GoogleLoginSchema,
     OTPRequestSchema,
     OTPResponse,
     OTPVerifySchema,
     RefreshTokenRequest,
+    RoleResponse,
     SessionResponse,
     TokenResponse,
     UserProfileResponse,
+    UserTenantRoleResponse,
 )
 from apps.api.modules.auth.service import AuthService
 
@@ -186,13 +189,6 @@ async def revoke_session(
 
 
 # ── Roles ────────────────────────────────────────────────────────────────
-
-from apps.api.core.dependencies import get_current_tenant_id
-from apps.api.modules.auth.schemas import (
-    RoleResponse,
-    AssignRoleSchema,
-    UserTenantRoleResponse,
-)
 
 
 @router.get(

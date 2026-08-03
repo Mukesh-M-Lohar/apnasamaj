@@ -40,7 +40,7 @@ class DonationService:
         """
         current_year = date.today().year
         prefix = f"RCPT-{current_year}-"
-        
+
         last_receipt = await self._repo.get_last_receipt_number(prefix)
         if last_receipt:
             # Extract the sequence part and increment
@@ -51,7 +51,7 @@ class DonationService:
                 next_seq = 1
         else:
             next_seq = 1
-            
+
         return f"{prefix}{next_seq:04d}"
 
     # ── Create ───────────────────────────────────────────────────────────
@@ -62,12 +62,12 @@ class DonationService:
         created_by: UUID | None = None,
     ) -> DonationResponse:
         """Create a new donation and auto-generate receipt."""
-        
+
         create_data = data.model_dump(exclude_none=True)
-        
+
         # Auto-generate receipt number
         create_data["receipt_number"] = await self._generate_receipt_number()
-        
+
         donation = await self._repo.create(
             data=create_data,
             created_by=created_by,
@@ -155,14 +155,12 @@ class DonationService:
         )
         if not donation:
             raise NotFoundException("Donation", str(donation_id))
-            
+
         return DonationResponse.model_validate(donation)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_donation(
-        self, donation_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_donation(self, donation_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a donation record."""
         success = await self._repo.soft_delete(donation_id, deleted_by)
         if not success:

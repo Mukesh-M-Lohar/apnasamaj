@@ -49,7 +49,7 @@ export default function DirectoryScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Member Directory</Text>
-      
+
       <View style={styles.searchContainer}>
         <FontAwesome name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
         <TextInput

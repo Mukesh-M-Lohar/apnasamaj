@@ -20,7 +20,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="admin-layout">
           <Sidebar />
-          
+
           <main className="main-content">
             <header className="topbar">
               <h2 style={{ fontSize: "1.125rem", color: "var(--text-secondary)" }}>
@@ -28,7 +28,7 @@ export default function RootLayout({
               </h2>
               <div className="badge badge-primary">Admin Session Active</div>
             </header>
-            
+
             <div className="page-container animate-fade-in">
               {children}
             </div>

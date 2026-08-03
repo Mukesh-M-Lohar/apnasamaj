@@ -14,27 +14,27 @@ from pydantic import Field, field_validator
 
 from apps.api.core.base_schema import BaseSchema
 
-
 # ── Donation ─────────────────────────────────────────────────────────────
+
 
 class DonationCreateSchema(BaseSchema):
     member_id: UUID | None = None
     family_id: UUID | None = None
     donor_name: str | None = Field(default=None, max_length=255)
-    
+
     amount: Decimal = Field(..., gt=0, decimal_places=2)
     currency: str = Field(default="INR", max_length=3)
     donation_date: date
-    
+
     purpose: str = Field(..., max_length=100)
     category: str | None = Field(default=None, max_length=100)
     sub_category: str | None = Field(default=None, max_length=100)
-    
+
     payment_mode: str = Field(..., max_length=50)
     transaction_reference: str | None = Field(default=None, max_length=255)
     cheque_number: str | None = Field(default=None, max_length=50)
     bank_name: str | None = Field(default=None, max_length=255)
-    
+
     status: str = Field(default="completed", max_length=20)
     remarks: str | None = None
     event_id: UUID | None = None
@@ -65,36 +65,38 @@ class DonationResponse(BaseSchema):
     member_id: UUID | None = None
     family_id: UUID | None = None
     donor_name: str | None = None
-    
+
     amount: Decimal
     currency: str
     donation_date: date
     purpose: str
     category: str | None = None
     sub_category: str | None = None
-    
+
     payment_mode: str
     transaction_reference: str | None = None
     cheque_number: str | None = None
     bank_name: str | None = None
-    
+
     receipt_number: str | None = None
     receipt_url: str | None = None
-    
+
     status: str
     remarks: str | None = None
     event_id: UUID | None = None
-    
+
     created_at: datetime
     updated_at: datetime
 
 
 # ── Summary/Rollups ──────────────────────────────────────────────────────
 
+
 class DonationSummaryItem(BaseSchema):
     group_key: str
     total_amount: Decimal
     count: int
+
 
 class DonationSummaryResponse(BaseSchema):
     total_donations: Decimal

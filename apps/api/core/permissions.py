@@ -16,7 +16,6 @@ from fastapi import Request
 
 from apps.api.core.exceptions import ForbiddenException, UnauthorizedException
 
-
 # ── Built-in Role Names ─────────────────────────────────────────────────
 
 
@@ -210,6 +209,4 @@ class RequirePermissions:
 
         if not self.required.issubset(user_permissions):
             missing = self.required - user_permissions
-            raise ForbiddenException(
-                message=f"Missing permissions: {', '.join(sorted(missing))}"
-            )
+            raise ForbiddenException(message=f"Missing permissions: {', '.join(sorted(missing))}")

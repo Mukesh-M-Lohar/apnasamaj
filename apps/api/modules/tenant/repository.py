@@ -79,9 +79,7 @@ class CommunityRepository:
         if search:
             search_filter = f"%{search}%"
             stmt = stmt.where(
-                Tenant.name.ilike(search_filter)
-                | Tenant.slug.ilike(search_filter)
-                | Tenant.city.ilike(search_filter)
+                Tenant.name.ilike(search_filter) | Tenant.slug.ilike(search_filter) | Tenant.city.ilike(search_filter)
             )
 
         if is_active is not None:
@@ -95,17 +93,11 @@ class CommunityRepository:
         return list(result.scalars().all())
 
     async def count(self, search: str | None = None, is_active: bool | None = None) -> int:
-        stmt = (
-            select(func.count())
-            .select_from(Tenant)
-            .where(Tenant.is_deleted == False)  # noqa: E712
-        )
+        stmt = select(func.count()).select_from(Tenant).where(Tenant.is_deleted == False)  # noqa: E712
         if search:
             search_filter = f"%{search}%"
             stmt = stmt.where(
-                Tenant.name.ilike(search_filter)
-                | Tenant.slug.ilike(search_filter)
-                | Tenant.city.ilike(search_filter)
+                Tenant.name.ilike(search_filter) | Tenant.slug.ilike(search_filter) | Tenant.city.ilike(search_filter)
             )
         if is_active is not None:
             stmt = stmt.where(Tenant.is_active == is_active)
@@ -115,9 +107,7 @@ class CommunityRepository:
 
     # ── Update ───────────────────────────────────────────────────────────
 
-    async def update(
-        self, tenant_id: UUID, data: dict[str, Any], updated_by: UUID | None = None
-    ) -> Tenant | None:
+    async def update(self, tenant_id: UUID, data: dict[str, Any], updated_by: UUID | None = None) -> Tenant | None:
         tenant = await self.get_by_id(tenant_id)
         if not tenant:
             return None
@@ -133,9 +123,7 @@ class CommunityRepository:
         await self._session.refresh(tenant)
         return tenant
 
-    async def update_settings(
-        self, tenant_id: UUID, settings: dict, updated_by: UUID | None = None
-    ) -> Tenant | None:
+    async def update_settings(self, tenant_id: UUID, settings: dict, updated_by: UUID | None = None) -> Tenant | None:
         tenant = await self.get_by_id(tenant_id)
         if not tenant:
             return None
@@ -155,11 +143,7 @@ class CommunityRepository:
     # ── Deactivate / Reactivate ──────────────────────────────────────────
 
     async def set_active(self, tenant_id: UUID, is_active: bool, updated_by: UUID | None = None) -> bool:
-        stmt = (
-            update(Tenant)
-            .where(Tenant.id == tenant_id)
-            .values(is_active=is_active, updated_by=updated_by)
-        )
+        stmt = update(Tenant).where(Tenant.id == tenant_id).values(is_active=is_active, updated_by=updated_by)
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 

@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.exceptions import NotFoundException
 from apps.api.modules.facility.repository import FacilityRepository
@@ -101,10 +100,7 @@ class FacilityService:
     # ── Bookings ─────────────────────────────────────────────────────────
 
     async def book_facility(
-        self, 
-        facility_id: UUID, 
-        data: FacilityBookingCreateSchema, 
-        booked_by: UUID
+        self, facility_id: UUID, data: FacilityBookingCreateSchema, booked_by: UUID
     ) -> FacilityBookingResponse:
         """Create a booking ensuring no double-booking."""
         facility = await self._repo.get_facility_by_id(facility_id)
@@ -113,14 +109,11 @@ class FacilityService:
 
         # Check collisions
         is_available = await self._repo.check_availability(
-            facility_id=facility_id,
-            start_time=data.start_time,
-            end_time=data.end_time
+            facility_id=facility_id, start_time=data.start_time, end_time=data.end_time
         )
         if not is_available:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Facility is already booked during this time slot."
+                status_code=status.HTTP_409_CONFLICT, detail="Facility is already booked during this time slot."
             )
 
         booking = await self._repo.create_booking(

@@ -26,13 +26,12 @@ import math
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.config import get_settings
 from apps.api.core.exceptions import (
     AlreadyExistsException,
-    ForbiddenException,
     NotFoundException,
 )
 from apps.api.modules.tenant.repository import CommunityRepository
@@ -124,14 +123,11 @@ class CommunityService:
 
         # Optionally update user's full_name if provided
         if data.admin_full_name:
-            from apps.api.modules.auth.models import User
             from sqlalchemy import update
 
-            await self._session.execute(
-                update(User)
-                .where(User.id == user_id)
-                .values(full_name=data.admin_full_name)
-            )
+            from apps.api.modules.auth.models import User
+
+            await self._session.execute(update(User).where(User.id == user_id).values(full_name=data.admin_full_name))
 
         logger.info(
             "Community onboarded: %s by user %s",
@@ -264,17 +260,13 @@ class CommunityService:
 
     # ── Activate / Deactivate ────────────────────────────────────────────
 
-    async def activate_community(
-        self, community_id: UUID, updated_by: UUID | None = None
-    ) -> dict:
+    async def activate_community(self, community_id: UUID, updated_by: UUID | None = None) -> dict:
         success = await self._repo.set_active(community_id, True, updated_by)
         if not success:
             raise NotFoundException("Community", str(community_id))
         return {"message": "Community activated"}
 
-    async def deactivate_community(
-        self, community_id: UUID, updated_by: UUID | None = None
-    ) -> dict:
+    async def deactivate_community(self, community_id: UUID, updated_by: UUID | None = None) -> dict:
         success = await self._repo.set_active(community_id, False, updated_by)
         if not success:
             raise NotFoundException("Community", str(community_id))
@@ -282,9 +274,7 @@ class CommunityService:
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_community(
-        self, community_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_community(self, community_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a community (Super Admin only)."""
         success = await self._repo.soft_delete(community_id, deleted_by)
         if not success:
@@ -302,12 +292,12 @@ class CommunityService:
             raise NotFoundException("Community", str(community_id))
 
         # Import models lazily to avoid circular deps
-        from apps.api.modules.member.models import Member
-        from apps.api.modules.family.models import Family
+        from apps.api.modules.complaint.models import Complaint
         from apps.api.modules.donation.models import Donation
         from apps.api.modules.event.models import Event
+        from apps.api.modules.family.models import Family
+        from apps.api.modules.member.models import Member
         from apps.api.modules.volunteer.models import Volunteer
-        from apps.api.modules.complaint.models import Complaint
 
         async def _count(model: type, extra_filter=None) -> int:
             stmt = (
@@ -388,9 +378,7 @@ class CommunityService:
             raise AlreadyExistsException("Member", field="this community")
 
         # Find the role
-        role_result = await self._session.execute(
-            select(Role).where(Role.name == role_name)
-        )
+        role_result = await self._session.execute(select(Role).where(Role.name == role_name))
         role = role_result.scalar_one_or_none()
         if not role:
             raise NotFoundException("Role", role_name)
@@ -406,7 +394,9 @@ class CommunityService:
 
         logger.info(
             "User %s invited to community %s with role %s",
-            mobile, tenant.name, role_name,
+            mobile,
+            tenant.name,
+            role_name,
         )
 
         return {

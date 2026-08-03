@@ -107,14 +107,12 @@ class ComplaintService:
         )
         if not complaint:
             raise NotFoundException("Complaint", str(complaint_id))
-            
+
         return ComplaintResponse.model_validate(complaint)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_complaint(
-        self, complaint_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_complaint(self, complaint_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a complaint."""
         success = await self._repo.soft_delete(complaint_id, deleted_by)
         if not success:

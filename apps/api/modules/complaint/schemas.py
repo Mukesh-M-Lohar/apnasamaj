@@ -7,6 +7,7 @@ Pydantic models for request validation and response serialization.
 from __future__ import annotations
 
 from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from apps.api.core.base_schema import BaseResponseSchema

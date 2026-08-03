@@ -13,10 +13,8 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 
 from apps.api.core.exceptions import NotFoundException
-from apps.api.modules.payment.models import EntityType, TransactionStatus
 from apps.api.modules.payment.repository import PaymentRepository
 from apps.api.modules.payment.schemas import (
     TransactionIntentSchema,
@@ -45,7 +43,7 @@ class PaymentService:
         """
         payload = data.model_dump(exclude_none=True)
         payload["payer_id"] = payer_id
-        
+
         # Simulate Provider reference generation
         payload["provider_reference"] = f"pi_{uuid.uuid4().hex[:14]}"
 
@@ -65,15 +63,11 @@ class PaymentService:
             logger.warning("Received webhook for unknown transaction: %s", payload.provider_reference)
             raise NotFoundException("Transaction", payload.provider_reference)
 
-        updated_tx = await self._repo.update_status(
-            transaction_id=transaction.id,
-            status=payload.status,
-            metadata=payload.metadata
-        )
-        
+        await self._repo.update_status(transaction_id=transaction.id, status=payload.status, metadata=payload.metadata)
+
         # Note: In a full event-driven system, this is where we would emit an event
         # (e.g., "TRANSACTION_SUCCEEDED") that the Donation or Facility module
-        # listens to in order to update their own tables. 
+        # listens to in order to update their own tables.
         # For now, the transaction state itself is updated securely.
 
         logger.info("Webhook processed for transaction %s. New status: %s", transaction.id, payload.status)

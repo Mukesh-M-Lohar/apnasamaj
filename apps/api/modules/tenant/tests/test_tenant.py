@@ -10,13 +10,13 @@ Tests cover:
 from __future__ import annotations
 
 import pytest
-from uuid import uuid4
 
 from apps.api.modules.tenant.schemas import (
     CommunityCreateSchema,
     CommunityUpdateSchema,
     InviteMemberSchema,
 )
+
 
 class TestCommunitySchemas:
     """Test Pydantic schema validation for Community."""
@@ -28,7 +28,7 @@ class TestCommunitySchemas:
             city="Mumbai",
             primary_language="en",
             timezone="Asia/Kolkata",
-            currency="INR"
+            currency="INR",
         )
         assert schema.name == "My Community"
         assert schema.slug == "my-community"
@@ -36,10 +36,7 @@ class TestCommunitySchemas:
         assert schema.primary_language == "en"
 
     def test_slug_is_lowercased(self) -> None:
-        schema = CommunityCreateSchema(
-            name="My Community",
-            slug="MY-COMMUNITY"
-        )
+        schema = CommunityCreateSchema(name="My Community", slug="MY-COMMUNITY")
         assert schema.slug == "my-community"
 
     def test_invalid_slug_pattern_raises(self) -> None:
@@ -47,10 +44,7 @@ class TestCommunitySchemas:
             CommunityCreateSchema(name="Test", slug="invalid_slug!")
 
     def test_valid_update_schema(self) -> None:
-        schema = CommunityUpdateSchema(
-            name="Updated Community",
-            city="Delhi"
-        )
+        schema = CommunityUpdateSchema(name="Updated Community", city="Delhi")
         assert schema.name == "Updated Community"
         assert schema.city == "Delhi"
 

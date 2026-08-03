@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -17,12 +17,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.api.core.exceptions import AppException, NotFoundException
 from apps.api.modules.event.repository import EventRepository
 from apps.api.modules.event.schemas import (
+    EventCheckInSchema,
     EventCreateSchema,
+    EventRegistrationResponse,
+    EventRegistrationSchema,
     EventResponse,
     EventUpdateSchema,
-    EventRegistrationSchema,
-    EventCheckInSchema,
-    EventRegistrationResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -111,14 +111,12 @@ class EventService:
         )
         if not event:
             raise NotFoundException("Event", str(event_id))
-            
+
         return EventResponse.model_validate(event)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_event(
-        self, event_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_event(self, event_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete an event."""
         success = await self._repo.soft_delete(event_id, deleted_by)
         if not success:
@@ -129,27 +127,24 @@ class EventService:
     # ── Registration & Attendance ────────────────────────────────────────
 
     async def register_member(
-        self, 
-        event_id: UUID, 
-        data: EventRegistrationSchema, 
-        created_by: UUID | None = None
+        self, event_id: UUID, data: EventRegistrationSchema, created_by: UUID | None = None
     ) -> EventRegistrationResponse:
         """Register a member for an event (RSVP)."""
         event = await self._repo.get_by_id(event_id)
         if not event:
             raise NotFoundException("Event", str(event_id))
-            
+
         if not event.is_registration_open:
             raise AppException("Registration is closed for this event")
-            
+
         if event.registration_deadline and event.registration_deadline < datetime.now(UTC):
             raise AppException("Registration deadline has passed")
-            
+
         if event.max_attendees:
             current_count = await self._repo.get_registration_count(event_id)
             if current_count + 1 + data.guests > event.max_attendees:
                 raise AppException("Event is at full capacity")
-                
+
         reg = await self._repo.register_member(
             event_id=event_id,
             member_id=data.member_id,
@@ -160,21 +155,15 @@ class EventService:
         return EventRegistrationResponse.model_validate(reg)
 
     async def check_in_member(
-        self,
-        event_id: UUID,
-        data: EventCheckInSchema,
-        updated_by: UUID | None = None
+        self, event_id: UUID, data: EventCheckInSchema, updated_by: UUID | None = None
     ) -> EventRegistrationResponse:
         """Mark a member as attended."""
         reg = await self._repo.mark_attendance(
-            event_id=event_id,
-            member_id=data.member_id,
-            method=data.check_in_method,
-            updated_by=updated_by
+            event_id=event_id, member_id=data.member_id, method=data.check_in_method, updated_by=updated_by
         )
         if not reg:
             raise NotFoundException("EventRegistration", f"{event_id}-{data.member_id}")
-            
+
         return EventRegistrationResponse.model_validate(reg)
 
     async def get_attendees(self, event_id: UUID) -> list[EventRegistrationResponse]:

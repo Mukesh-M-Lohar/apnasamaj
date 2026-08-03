@@ -35,9 +35,9 @@ export default function TabOneScreen() {
           <Text style={styles.avatarText}>{user?.first_name?.[0] || 'U'}</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      
+
       <Text style={styles.sectionTitle}>Upcoming Events</Text>
       {events.length === 0 ? (
         <Text style={styles.emptyText}>No upcoming events found.</Text>
@@ -124,4 +124,3 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
-

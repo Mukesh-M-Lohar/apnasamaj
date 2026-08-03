@@ -15,7 +15,6 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.exceptions import (
-    AlreadyExistsException,
     NotFoundException,
 )
 from apps.api.modules.member.repository import MemberRepository
@@ -123,15 +122,13 @@ class MemberService:
         )
         if not member:
             raise NotFoundException("Member", str(member_id))
-        
+
         logger.info("Member updated: %s", member_id)
         return MemberResponse.model_validate(member)
 
     # ── Delete ───────────────────────────────────────────────────────────
 
-    async def delete_member(
-        self, member_id: UUID, deleted_by: UUID | None = None
-    ) -> dict:
+    async def delete_member(self, member_id: UUID, deleted_by: UUID | None = None) -> dict:
         """Soft-delete a member."""
         success = await self._repo.soft_delete(member_id, deleted_by)
         if not success:
@@ -149,25 +146,26 @@ class MemberService:
         """Parse CSV and bulk import members."""
         import csv
         import io
+
         from pydantic import ValidationError
-        
+
         # Decode and parse CSV
         text_content = file_content.decode("utf-8-sig")
         reader = csv.DictReader(io.StringIO(text_content))
-        
+
         total_rows = 0
         success_count = 0
         errors = []
-        
+
         for row in reader:
             total_rows += 1
             try:
                 # Clean up empty strings to None
                 cleaned_row = {k: (v.strip() if v.strip() else None) for k, v in row.items()}
-                
+
                 # Parse through Pydantic to validate
                 schema = MemberCreateSchema(**cleaned_row)
-                
+
                 # Create in DB
                 await self._repo.create(
                     data=schema.model_dump(exclude_none=True),
@@ -177,21 +175,8 @@ class MemberService:
             except ValidationError as e:
                 # Capture validation errors
                 err_msg = ", ".join([f"{err['loc'][0]}: {err['msg']}" for err in e.errors()])
-                errors.append({
-                    "row": total_rows,
-                    "error": err_msg,
-                    "data": cleaned_row
-                })
+                errors.append({"row": total_rows, "error": err_msg, "data": cleaned_row})
             except Exception as e:
-                errors.append({
-                    "row": total_rows,
-                    "error": str(e),
-                    "data": row
-                })
-                
-        return {
-            "total_rows": total_rows,
-            "success_count": success_count,
-            "error_count": len(errors),
-            "errors": errors
-        }
+                errors.append({"row": total_rows, "error": str(e), "data": row})
+
+        return {"total_rows": total_rows, "success_count": success_count, "error_count": len(errors), "errors": errors}

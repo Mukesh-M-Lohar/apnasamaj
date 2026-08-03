@@ -1,4 +1,4 @@
-.PHONY: help local dev seed deploy-aws deploy-azure clean
+.PHONY: help install dev seed local run-docker web mobile lint format migrate makemigrations deploy-aws deploy-azure clean
 
 # Environment Variables
 AWS_REGION ?= us-east-1
@@ -11,15 +11,26 @@ help:
 	@echo "ApnaSamaj Makefile"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make local         - Copy .env.example to .env and start local Docker compose stack (Backend only)"
-	@echo "  make run-docker    - Start the ENTIRE ecosystem (DB, Redis, API, Web, Mobile) via docker-compose"
-	@echo "  make dev           - Run the FastAPI backend locally with uvicorn hot-reload"
-	@echo "  make mobile        - Start the Expo React Native mobile app"
-	@echo "  make web           - Start the Next.js admin dashboard locally"
-	@echo "  make seed          - Generate dummy data in the local database"
-	@echo "  make deploy-aws    - Build and deploy Docker image to AWS ECR/ECS"
-	@echo "  make deploy-azure  - Build and deploy Docker image to Azure ACR/Container Apps"
-	@echo "  make clean         - Stop and remove local Docker containers"
+	@echo "  make install        - Install all dependencies via uv (creates .venv)"
+	@echo "  make local          - Copy .env.example to .env and start local Docker compose stack (DB, Redis, MinIO, API)"
+	@echo "  make run-docker     - Start the ENTIRE ecosystem (DB, Redis, API, Web, Mobile) via docker-compose"
+	@echo "  make dev            - Run the FastAPI backend locally with uvicorn hot-reload"
+	@echo "  make mobile         - Start the Expo React Native mobile app"
+	@echo "  make web            - Start the Next.js admin dashboard locally"
+	@echo "  make seed           - Generate dummy data in the local database"
+	@echo "  make lint           - Run ruff linter"
+	@echo "  make format         - Run black formatter"
+	@echo "  make migrate        - Apply all pending Alembic migrations"
+	@echo "  make makemigrations - Auto-generate a new Alembic migration (MSG='...' optional)"
+	@echo "  make deploy-aws     - Build and deploy Docker image to AWS ECR/ECS"
+	@echo "  make deploy-azure   - Build and deploy Docker image to Azure ACR/Container Apps"
+	@echo "  make clean          - Stop and remove local Docker containers"
+
+# --- SETUP ---
+
+install:
+	@echo "Installing dependencies via uv..."
+	uv sync --all-extras
 
 # --- LOCAL DEVELOPMENT ---
 
@@ -39,7 +50,7 @@ run-docker: .env
 
 dev: .env
 	@echo "Starting FastAPI development server..."
-	uvicorn apps.api.main:app --reload --host 0.0.0.0 --port 8000
+	uv run uvicorn apps.api.main:app --reload --host 0.0.0.0 --port 8000
 
 mobile:
 	@echo "Starting Expo Mobile App..."
@@ -49,9 +60,29 @@ web:
 	@echo "Starting Next.js Web Admin Dashboard..."
 	cd apps/web && npm install && npm run dev
 
-seed:
+seed: .env
 	@echo "Seeding local database with dummy data..."
-	PYTHONPATH=. python scripts/seed.py
+	uv run python scripts/seed.py
+
+# --- CODE QUALITY ---
+
+lint:
+	@echo "Running ruff linter..."
+	uv run ruff check .
+
+format:
+	@echo "Running black formatter..."
+	uv run black .
+
+# --- DATABASE MIGRATIONS ---
+
+migrate:
+	@echo "Applying Alembic migrations..."
+	uv run alembic upgrade head
+
+makemigrations:
+	@echo "Generating Alembic migration..."
+	uv run alembic revision --autogenerate -m "$(MSG)"
 
 clean:
 	@echo "Stopping local environment..."

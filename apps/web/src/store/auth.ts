@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
   tenantId: typeof window !== "undefined" ? localStorage.getItem("tenantId") : null,
   user: null, // Would typically hydrate from localStorage or a /me endpoint
-  
+
   setAuth: (token, tenantId, user) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("token", token);
@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     set({ token, tenantId, user });
   },
-  
+
   logout: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");

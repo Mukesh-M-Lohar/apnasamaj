@@ -19,13 +19,13 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Optionally inject tenant_id if stored
     const tenantId = await SecureStore.getItemAsync('tenant_id');
     if (tenantId) {
       config.headers['X-Tenant-ID'] = tenantId;
     }
-    
+
     return config;
   },
   (error) => Promise.reject(error)

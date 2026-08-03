@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from apps.api.core.base_schema import BaseResponseSchema

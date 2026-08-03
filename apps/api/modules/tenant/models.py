@@ -8,12 +8,9 @@ Uses GlobalBaseModel because it does NOT have a tenant_id itself.
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
-
-from sqlalchemy import Boolean, DateTime, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, String, Text, text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.api.core.base_model import GlobalBaseModel
 

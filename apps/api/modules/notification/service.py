@@ -38,8 +38,8 @@ class NotificationService:
         """Queue a broadcast message."""
         payload = data.model_dump(exclude_none=True)
         payload["sender_id"] = sender_id
-        
-        # In a real app, this is where you'd trigger a Celery task to send 
+
+        # In a real app, this is where you'd trigger a Celery task to send
         # via Firebase (Push), Twilio (SMS), or SendGrid (Email).
         # We simulate the queuing here by setting status to SENT immediately.
         payload["status"] = NotificationStatus.SENT

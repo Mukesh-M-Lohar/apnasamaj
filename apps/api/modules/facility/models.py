@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Text, Numeric, DateTime
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.api.core.base_model import BaseModel
@@ -40,7 +40,7 @@ class Facility(BaseModel):
 
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    bookings: Mapped[list["FacilityBooking"]] = relationship(back_populates="facility")
+    bookings: Mapped[list[FacilityBooking]] = relationship(back_populates="facility")
 
 
 class FacilityBooking(BaseModel):
@@ -48,14 +48,10 @@ class FacilityBooking(BaseModel):
 
     __tablename__ = "facility_bookings"
 
-    facility_id: Mapped[UUID] = mapped_column(
-        ForeignKey("facilities.id"), nullable=False
-    )
+    facility_id: Mapped[UUID] = mapped_column(ForeignKey("facilities.id"), nullable=False)
     booked_by_id: Mapped[UUID] = mapped_column(ForeignKey("members.id"), nullable=False)
 
-    start_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     status: Mapped[BookingStatus] = mapped_column(default=BookingStatus.PENDING)
@@ -64,5 +60,5 @@ class FacilityBooking(BaseModel):
     total_cost: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     # Relationships
-    facility: Mapped["Facility"] = relationship(back_populates="bookings")
-    booked_by: Mapped["Member"] = relationship()
+    facility: Mapped[Facility] = relationship(back_populates="bookings")
+    booked_by: Mapped[Member] = relationship()
