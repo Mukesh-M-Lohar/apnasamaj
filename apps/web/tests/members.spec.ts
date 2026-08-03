@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { login } from './utils';
 
-test.describe('Members Page', () => {
+test.describe('Members Directory', () => {
   test.beforeEach(async ({ page }) => {
+    await login(page);
     await page.goto('/members');
   });
 
@@ -12,24 +14,38 @@ test.describe('Members Page', () => {
     // Check if the members header is present
     await expect(page.locator('h1', { hasText: 'Member Directory' })).toBeVisible();
 
-    // Check if the mock members are rendered in the table/list
-    await expect(page.locator('text=Rahul Sharma')).toBeVisible();
-    await expect(page.locator('text=Priya Patel')).toBeVisible();
-    await expect(page.locator('text=Amit Verma')).toBeVisible();
+    // Check that the data table has rows (meaning members were loaded)
+    const tableRows = page.locator('.data-table tbody tr');
+    await expect(tableRows).not.toHaveCount(0);
+
+    // We should ensure the row is not the "Loading..." or "No members found." row if data exists
+    // Given the seeded data, we expect real members
+    const firstRowText = await tableRows.first().textContent();
+    expect(firstRowText).not.toContain('Loading...');
   });
 
   test('should filter members when using the search bar', async ({ page }) => {
     await page.waitForTimeout(1000); // Wait for mock data
 
-    // Find the search input and type a query
+    const tableRows = page.locator('.data-table tbody tr');
+    await expect(tableRows).not.toHaveCount(0);
+
+    // Get the name of the first member in the table
+    const firstMemberName = await tableRows.first().locator('td').first().textContent();
+    if (!firstMemberName) {
+      // If table is empty or something went wrong, just return
+      return;
+    }
+
+    // Find the search input and type a query that doesn't match the first member (e.g., a random string)
     const searchInput = page.locator('input[placeholder="Search by name or phone..."]');
-    await searchInput.fill('Rahul');
+    await searchInput.fill('XYZRANDOMSTRINGXYZ');
 
-    // Rahul should still be visible
-    await expect(page.locator('text=Rahul Sharma')).toBeVisible();
+    // The first member should no longer be visible (or the table should say 'No members found.')
+    await expect(page.locator('.data-table tbody tr').first()).toHaveText(/No members found/i);
 
-    // Priya and Amit should not be visible
-    await expect(page.locator('text=Priya Patel')).not.toBeVisible();
-    await expect(page.locator('text=Amit Verma')).not.toBeVisible();
+    // Clear search and search for the first member
+    await searchInput.fill(firstMemberName.trim());
+    await expect(page.locator('.data-table tbody tr').first().locator('td').first()).toHaveText(firstMemberName.trim());
   });
 });

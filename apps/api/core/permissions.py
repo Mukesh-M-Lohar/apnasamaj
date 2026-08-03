@@ -194,14 +194,36 @@ class RequirePermissions:
     def __init__(self, *permissions: Permission) -> None:
         self.required = set(permissions)
 
-    async def __call__(self, request: Request) -> None:
-        user: dict[str, Any] | None = getattr(request.state, "user", None)
+    async def __call__(
+        self,
+        request: Request,
+        user: dict[str, Any] | None = None,  # If I add Depends here, I need to import it
+    ) -> None:
+        # To avoid importing Depends and get_current_user here and creating a circular dependency,
+        # let's just get the token from request and decode it manually, or just import them inline
+
+        # Actually, FastAPI injects Depends in __call__, but since I can't put Depends inline
+        # in the signature without importing it, I'll just use the request.state.user fallback,
+        # but since there is no middleware setting it, let's decode the token manually here!
+        from jose import JWTError
+
+        from apps.api.core.security import decode_token
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise UnauthorizedException()
+
+        try:
+            token = auth_header.split(" ")[1]
+            user = decode_token(token)
+        except JWTError:
+            raise UnauthorizedException()
+
         if not user:
             raise UnauthorizedException()
 
-        user_roles: list[str] = user.get("roles", [])
-
         # Super admin bypass
+        user_roles: list[str] = user.get("roles", [])
         if RoleName.SUPER_ADMIN in user_roles:
             return
 

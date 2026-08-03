@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { login } from './utils';
 
 test.describe('Dashboard Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await login(page);
   });
 
   test('should display the correct page title', async ({ page }) => {
