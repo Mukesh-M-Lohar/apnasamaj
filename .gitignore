@@ -57,3 +57,6 @@ logs/
 *screenshot*.py
 *venv*
 playwright-report/\ntest-results/
+
+playwright-report/
+test-results/
