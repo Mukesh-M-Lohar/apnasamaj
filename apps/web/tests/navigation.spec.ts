@@ -5,7 +5,7 @@ test.describe('Navigation', () => {
     // Start at Dashboard
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    
+
     // Check if on Dashboard
     await expect(page.locator('text=Total Members')).toBeVisible();
 
@@ -13,7 +13,7 @@ test.describe('Navigation', () => {
     // The sidebar usually has a link with text "Members" or an href to "/members"
     const membersLink = page.locator('a[href="/members"]');
     await membersLink.click();
-    
+
     // Check if navigated to Members page
     await expect(page).toHaveURL(/.*\/members/);
     await expect(page.locator('h1', { hasText: 'Member Directory' })).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('Navigation', () => {
     // Click the Dashboard link in the sidebar
     const dashboardLink = page.locator('a[href="/"]');
     await dashboardLink.first().click();
-    
+
     // Check if navigated back to Dashboard
     await expect(page).toHaveURL(/.*\//);
     await expect(page.locator('text=Total Members')).toBeVisible();

@@ -15,7 +15,7 @@ test.describe('Dashboard Page', () => {
   test('should display the main KPIs', async ({ page }) => {
     // Wait for the mock data timeout (800ms in page.tsx)
     await page.waitForTimeout(1000);
-    
+
     // Check if the 4 KPI cards are rendered by checking for their text
     await expect(page.locator('text=Total Members')).toBeVisible();
     await expect(page.locator('text=Funds Raised')).toBeVisible();
