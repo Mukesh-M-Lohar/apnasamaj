@@ -77,10 +77,13 @@ class AuthService:
         # For now, log it (NEVER do this in production)
         logger.info("OTP for %s: %s (DEV ONLY – remove in production)", mobile, otp)
 
+        response_otp = otp if settings.ENVIRONMENT != "production" else None
+
         return OTPResponse(
             message="OTP sent successfully",
             expires_in=settings.OTP_EXPIRE_SECONDS,
             mobile=mobile,
+            otp=response_otp,
         )
 
     # ── OTP Verify ───────────────────────────────────────────────────────

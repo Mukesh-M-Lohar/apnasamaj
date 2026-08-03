@@ -185,6 +185,7 @@ class OTPResponse(BaseSchema):
     message: str = "OTP sent successfully"
     expires_in: int  # seconds
     mobile: str
+    otp: str | None = None
 
 
 # ── Social Login Scaffold ───────────────────────────────────────────────

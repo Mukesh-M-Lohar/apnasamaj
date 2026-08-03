@@ -38,9 +38,9 @@ export default function DirectoryScreen() {
           <Text style={styles.subText}>Blood: {item.blood_group || 'N/A'}</Text>
         </View>
       </View>
-      <View style={[styles.badge, { backgroundColor: item.membership_status === 'active' ? '#dcfce7' : '#fee2e2' }]}>
-        <Text style={[styles.badgeText, { color: item.membership_status === 'active' ? '#166534' : '#991b1b' }]}>
-          {item.membership_status?.toUpperCase() || 'UNKNOWN'}
+      <View style={[styles.badge, { backgroundColor: item.status === 'active' ? '#dcfce7' : '#fee2e2' }]}>
+        <Text style={[styles.badgeText, { color: item.status === 'active' ? '#166534' : '#991b1b' }]}>
+          {item.status?.toUpperCase() || 'UNKNOWN'}
         </Text>
       </View>
     </View>

@@ -5,8 +5,8 @@ import { apiClient } from '@/src/api/client';
 import { useAuthStore } from '@/src/store/auth';
 
 export default function VerifyScreen() {
-  const { mobile } = useLocalSearchParams<{ mobile: string }>();
-  const [otp, setOtp] = useState('');
+  const { mobile, devOtp } = useLocalSearchParams<{ mobile: string, devOtp?: string }>();
+  const [otp, setOtp] = useState(devOtp || '');
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
 
@@ -21,16 +21,13 @@ export default function VerifyScreen() {
       const payload = {
         mobile: mobile,
         otp: otp,
-        device_id: "mobile-app-device",
         device_name: "Mobile App"
       };
 
-      const response = await apiClient.post('/auth/verify-otp', payload);
+      const response = await apiClient.post('/auth/otp/verify', payload);
 
-      const { access_token, user } = response.data.data;
-      // In a multi-tenant app, user.tenant_id might be the primary one.
-      // We will assume user object has a default tenant or we pull the first tenant role
-      const tenantId = user.tenant_id || "00000000-0000-0000-0000-000000000000";
+      const { access_token, user, tenant } = response.data.data;
+      const tenantId = tenant?.id || "";
 
       await login(access_token, tenantId, user);
       // The _layout.tsx effect will automatically redirect to /(tabs)/ based on the store update.

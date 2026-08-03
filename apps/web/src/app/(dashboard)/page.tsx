@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Users, Banknote, CalendarCheck, AlertOctagon } from "lucide-react";
 import { apiClient } from "@/api/client";
+import { useAuthStore } from "@/store/auth";
 
 interface DashboardMetrics {
   totalMembers: number;
@@ -12,6 +13,7 @@ interface DashboardMetrics {
 }
 
 export default function Dashboard() {
+  const { tenantId } = useAuthStore();
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalMembers: 0,
     fundsRaised: 0,
@@ -22,18 +24,27 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real scenario, this fetches from an aggregated dashboard API
-    // We simulate fetching here to demonstrate the UI
-    setTimeout(() => {
-      setMetrics({
-        totalMembers: 245,
-        fundsRaised: 142500,
-        upcomingEvents: 4,
-        openComplaints: 3,
-      });
-      setLoading(false);
-    }, 800);
-  }, []);
+    if (!tenantId) return;
+
+    const fetchStats = async () => {
+      try {
+        const res = await apiClient.get(`/communities/${tenantId}/stats`);
+        const stats = res.data;
+        setMetrics({
+          totalMembers: stats.total_members || 0,
+          fundsRaised: stats.total_donations || 0,
+          upcomingEvents: stats.upcoming_events || 0,
+          openComplaints: stats.active_complaints || 0,
+        });
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [tenantId]);
 
   return (
     <div>

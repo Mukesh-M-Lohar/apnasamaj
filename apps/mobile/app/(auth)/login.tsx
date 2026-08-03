@@ -16,15 +16,10 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // In a real scenario, you'd fetch the tenant ID based on community code or domain.
-      // For now, we will assume a dummy tenant_id for the login scope, or let the backend resolve it based on mobile.
-      const payload = {
-        mobile: mobile,
-        tenant_id: "00000000-0000-0000-0000-000000000000", // Will be overridden or ignored if backend allows global search
-      };
-
-      await apiClient.post('/auth/send-otp', payload);
-      router.push({ pathname: '/(auth)/verify', params: { mobile } });
+      const payload = { mobile };
+      const res = await apiClient.post('/auth/otp/request', payload);
+      const devOtp = res.data?.data?.otp || '';
+      router.push({ pathname: '/(auth)/verify', params: { mobile, devOtp } });
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Failed to send OTP');
     } finally {

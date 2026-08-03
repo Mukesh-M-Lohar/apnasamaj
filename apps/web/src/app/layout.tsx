@@ -18,22 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="admin-layout">
-          <Sidebar />
-
-          <main className="main-content">
-            <header className="topbar">
-              <h2 style={{ fontSize: "1.125rem", color: "var(--text-secondary)" }}>
-                Community Operations Center
-              </h2>
-              <div className="badge badge-primary">Admin Session Active</div>
-            </header>
-
-            <div className="page-container animate-fade-in">
-              {children}
-            </div>
-          </main>
-        </div>
+        {children}
       </body>
     </html>
   );

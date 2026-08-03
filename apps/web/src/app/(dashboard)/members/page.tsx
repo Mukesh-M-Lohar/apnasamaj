@@ -20,16 +20,28 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    // In a real app we fetch from apiClient.get('/members')
-    // We mock the response here to demonstrate the UI
-    setTimeout(() => {
-      setMembers([
-        { id: "1", first_name: "Rahul", last_name: "Sharma", phone_number: "+919876543210", is_active: true, role: "admin", created_at: "2026-01-15T00:00:00Z" },
-        { id: "2", first_name: "Priya", last_name: "Patel", phone_number: "+919876543211", is_active: true, role: "member", created_at: "2026-02-10T00:00:00Z" },
-        { id: "3", first_name: "Amit", last_name: "Verma", phone_number: "+919876543212", is_active: false, role: "member", created_at: "2026-03-05T00:00:00Z" },
-      ]);
-      setLoading(false);
-    }, 800);
+    const fetchMembers = async () => {
+      try {
+        const res = await apiClient.get("/members");
+        // res.data could be { data: { items: [...] } } or { items: [...] } depending on the pagination wrapper
+        const responseData = res.data as any;
+        const items = responseData?.items || responseData?.data?.items || [];
+        setMembers(items.map((m: any) => ({
+          id: m.id,
+          first_name: m.first_name,
+          last_name: m.last_name,
+          phone_number: m.mobile,
+          is_active: m.status === "active",
+          role: m.occupation || "Member",
+          created_at: new Date().toISOString(), // Mocked created_at if not present
+        })));
+      } catch (error) {
+        console.error("Failed to fetch members", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMembers();
   }, []);
 
   const filteredMembers = members.filter((m) =>

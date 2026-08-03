@@ -24,9 +24,8 @@ from apps.api.modules.complaint.routes import router as complaint_router
 from apps.api.modules.donation.routes import router as donation_router
 from apps.api.modules.event.routes import router as event_router
 from apps.api.modules.facility.routes import router as facility_router
-
-# from apps.api.modules.member.routes import router as member_router
 from apps.api.modules.family.routes import router as family_router
+from apps.api.modules.member.routes import router as member_router
 from apps.api.modules.notification.routes import router as notification_router
 from apps.api.modules.payment.routes import router as payment_router
 from apps.api.modules.poll.routes import router as poll_router
@@ -76,7 +75,7 @@ def create_app() -> FastAPI:
     # ── API v1 Routes ───────────────────────────────────────────────────
     app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
     app.include_router(community_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(member_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(member_router, prefix=settings.API_V1_PREFIX)
     app.include_router(family_router, prefix=settings.API_V1_PREFIX)
     app.include_router(committee_router, prefix=settings.API_V1_PREFIX)
     app.include_router(donation_router, prefix=settings.API_V1_PREFIX)
